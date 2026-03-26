@@ -3,8 +3,6 @@ import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-// Update this to your actual Cloudflare Worker URL
-const String kWorkerUrl = 'https://your-worker.workers.dev';
 
 class WeatherData {
   final double tempF;
@@ -176,6 +174,13 @@ class WeatherService {
               'input': trimmed,
               'sessionToken': sessionToken,
               'includeQueryPredictions': false,
+              'includedPrimaryTypes': [
+                'locality',
+                'park',
+                'campground',
+                'natural_feature',
+                'tourist_attraction',
+              ],
             }),
           )
           .timeout(const Duration(seconds: 8));
@@ -184,8 +189,7 @@ class WeatherService {
       }
       if (resp.statusCode != 200) {
         final errBody = resp.body;
-        dev.log('[Places] searchLocations error ${resp.statusCode}: $errBody',
-            name: 'WeatherService');
+        assert(() { dev.log('[Places] searchLocations error ${resp.statusCode}: $errBody', name: 'WeatherService'); return true; }());
         // Surface error so caller can show it to the user
         throw Exception('Places API ${resp.statusCode}: $errBody');
       }
@@ -203,7 +207,7 @@ class WeatherService {
           .take(limit)
           .toList();
     } catch (e) {
-      dev.log('[Places] searchLocations exception: $e', name: 'WeatherService');
+      assert(() { dev.log('[Places] searchLocations exception: $e', name: 'WeatherService'); return true; }());
       rethrow;
     } finally {
       if (identical(_activeSearchClient, client)) {
@@ -241,8 +245,7 @@ class WeatherService {
       ).timeout(const Duration(seconds: 8));
 
       if (resp.statusCode != 200) {
-        dev.log('[Places] resolvePlace error ${resp.statusCode}: ${resp.body}',
-            name: 'WeatherService');
+        assert(() { dev.log('[Places] resolvePlace error ${resp.statusCode}: ${resp.body}', name: 'WeatherService'); return true; }());
         return null;
       }
 
@@ -263,21 +266,8 @@ class WeatherService {
     }
   }
 
-  static Future<WeatherData?> fetchWeather(double lat, double lng) async {
-    // Try Cloudflare Worker first
-    if (kWorkerUrl != 'https://your-worker.workers.dev') {
-      try {
-        final resp = await http
-            .get(Uri.parse('$kWorkerUrl/weather?lat=$lat&lng=$lng'))
-            .timeout(const Duration(seconds: 8));
-        if (resp.statusCode == 200) {
-          return WeatherData.fromOpenMeteo(jsonDecode(resp.body), []);
-        }
-      } catch (_) {}
-    }
-    // Fallback: Open-Meteo directly
-    return _fetchOpenMeteo(lat, lng);
-  }
+  static Future<WeatherData?> fetchWeather(double lat, double lng) =>
+      _fetchOpenMeteo(lat, lng);
 
   static Future<WeatherData?> _fetchOpenMeteo(double lat, double lng) async {
     try {

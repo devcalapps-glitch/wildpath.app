@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
@@ -10,7 +11,7 @@ import '../models/meal_item.dart';
 import '../services/storage_service.dart';
 import '../widgets/common_widgets.dart';
 
-enum MoreSection { menu, map, trips, emergency, budget, passes, profile, about }
+enum MoreSection { menu, map, trips, emergency, budget, passes, profile, about, privacy }
 
 class MoreScreen extends StatefulWidget {
   final StorageService storage;
@@ -91,7 +92,9 @@ class _MoreScreenState extends State<MoreScreen> {
       case MoreSection.profile:
         return _ProfileSection(storage: widget.storage, onBack: _back);
       case MoreSection.about:
-        return _AboutSection(onBack: _back);
+        return _AboutSection(onBack: _back, onPrivacy: () => _go(MoreSection.privacy));
+      case MoreSection.privacy:
+        return _PrivacyPolicySection(onBack: _back);
       default:
         return _buildMenu();
     }
@@ -616,6 +619,7 @@ class _TripsSectionState extends State<_TripsSection> {
                         const SizedBox(width: 8),
                         Expanded(
                             child: GhostButton('Delete',
+                                color: WildPathColors.red,
                                 onPressed: () => showDialog(
                                       context: context,
                                       builder: (_) => AlertDialog(
@@ -626,36 +630,65 @@ class _TripsSectionState extends State<_TripsSection> {
                                         title: Text('Delete Trip?',
                                             style: WildPathTypography.display(
                                                 fontSize: 20)),
-                                        content: Text(
-                                            'Permanently delete "${trip.name.isNotEmpty ? trip.name : 'this trip'}"?',
-                                            style: WildPathTypography.body(
-                                                fontSize: 13,
-                                                color: WildPathColors.smoke)),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                              child: Text('Cancel',
+                                        content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                  'Permanently delete "${trip.name.isNotEmpty ? trip.name : 'this trip'}"?',
+                                                  style: WildPathTypography.body(
+                                                      fontSize: 13,
+                                                      color:
+                                                          WildPathColors.smoke)),
+                                              const SizedBox(height: 20),
+                                              Row(children: [
+                                                Expanded(
+                                                    child: OutlineButton2(
+                                                        'Cancel',
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context))),
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                    child: ElevatedButton(
                                                   style:
-                                                      WildPathTypography.body(
-                                                          color: WildPathColors
-                                                              .smoke))),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    WildPathColors.red),
-                                            onPressed: () async {
-                                              await widget.storage
-                                                  .deleteTrip(trip.id);
-                                              setState(() => _trips = widget
-                                                  .storage
-                                                  .loadSavedTrips());
-                                              if (context.mounted)
-                                                Navigator.pop(context);
-                                            },
-                                            child: const Text('Delete'),
-                                          ),
-                                        ],
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        WildPathColors.red,
+                                                    minimumSize:
+                                                        const Size(0, 48),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        12)),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await widget.storage
+                                                        .deleteTrip(trip.id);
+                                                    setState(() => _trips =
+                                                        widget.storage
+                                                            .loadSavedTrips());
+                                                    if (context.mounted)
+                                                      Navigator.pop(context);
+                                                  },
+                                                  child: Text('Delete',
+                                                      style: WildPathTypography
+                                                          .body(
+                                                              fontSize: 11,
+                                                              letterSpacing:
+                                                                  1.1,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color: Colors
+                                                                  .white)),
+                                                )),
+                                              ]),
+                                            ]),
+                                        actions: const [],
                                       ),
                                     ))),
                       ]),
@@ -866,16 +899,22 @@ class _EmergencySectionState extends State<_EmergencySection> {
             decoration: BoxDecoration(
                 color: color, borderRadius: BorderRadius.circular(12)),
             child: Column(children: [
-              Text(label,
-                  style: WildPathTypography.body(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white),
-                  textAlign: TextAlign.center),
-              Text(sub,
-                  style: WildPathTypography.body(
-                      fontSize: 9, color: Colors.white.withOpacity(0.85)),
-                  textAlign: TextAlign.center),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label,
+                    style: WildPathTypography.body(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white),
+                    textAlign: TextAlign.center),
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(sub,
+                    style: WildPathTypography.body(
+                        fontSize: 9, color: Colors.white.withOpacity(0.85)),
+                    textAlign: TextAlign.center),
+              ),
             ]),
           ));
 
@@ -1234,17 +1273,21 @@ class _BudgetSectionState extends State<_BudgetSection> {
                     borderRadius: BorderRadius.circular(12)),
                 minimumSize: const Size(0, 48),
               ),
-              child:
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Text('💾', style: TextStyle(fontSize: 15)),
-                const SizedBox(width: 6),
-                Text('Save to My Trips',
-                    style: WildPathTypography.body(
-                        fontSize: 11,
-                        letterSpacing: 0.72,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white)),
-              ]),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                  const Text('💾', style: TextStyle(fontSize: 15)),
+                  const SizedBox(width: 6),
+                  Text('Save to My Trips',
+                      style: WildPathTypography.body(
+                          fontSize: 11,
+                          letterSpacing: 0.72,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ]),
+              ),
             )),
             const SizedBox(width: 10),
             Expanded(
@@ -1311,43 +1354,30 @@ class _PassesSection extends StatelessWidget {
           Text('Photos of your park passes, permits & cards',
               style: WildPathTypography.body(
                   fontSize: 12, color: WildPathColors.smoke)),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () =>
-                showWildToast(context, 'image_picker integration — see README'),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 22),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: WildPathColors.mist, width: 2),
-                  borderRadius: BorderRadius.circular(14)),
-              child: Column(children: [
-                const Text('📷', style: TextStyle(fontSize: 32)),
-                const SizedBox(height: 8),
-                Text('ADD PASS OR PERMIT',
-                    style: WildPathTypography.body(
-                        fontSize: 11,
-                        letterSpacing: 0.08 * 11,
-                        color: WildPathColors.moss,
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text('Take a photo or choose from gallery',
-                    style: WildPathTypography.body(
-                        fontSize: 11, color: WildPathColors.stone)),
-              ]),
-            ),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: WildPathColors.mist, width: 1.5)),
+            child: Column(children: [
+              const Text('🏞️', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 16),
+              Text('Coming Soon',
+                  style: WildPathTypography.display(
+                      fontSize: 22, color: WildPathColors.forest)),
+              const SizedBox(height: 8),
+              Text(
+                  'Passes & Permits storage is on the way.\nStore photos of your park passes, annual permits, and reservation confirmations — all in one place.',
+                  style: WildPathTypography.body(
+                      fontSize: 13,
+                      color: WildPathColors.smoke,
+                      height: 1.5),
+                  textAlign: TextAlign.center),
+            ]),
           ),
-          const SizedBox(height: 20),
-          const EmptyState(
-              emoji: '🏞️',
-              message:
-                  'No passes added yet.\nPhotograph your national park pass, annual permit, or reservation confirmation.'),
-          const SizedBox(height: 16),
-          const TipCard(
-              emoji: '💡',
-              content:
-                  'Store your America the Beautiful pass, campsite reservation, backcountry permit, and fire permit all in one place.'),
         ]),
       );
 }
@@ -1530,15 +1560,31 @@ class _ProfileSectionState extends State<_ProfileSection> {
 // ══════════════════════════════════════════════════════════════════════════
 // ABOUT
 // ══════════════════════════════════════════════════════════════════════════
-class _AboutSection extends StatelessWidget {
+class _AboutSection extends StatefulWidget {
   final VoidCallback onBack;
-  const _AboutSection({required this.onBack});
+  final VoidCallback onPrivacy;
+  const _AboutSection({required this.onBack, required this.onPrivacy});
+
+  @override
+  State<_AboutSection> createState() => _AboutSectionState();
+}
+
+class _AboutSectionState extends State<_AboutSection> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = info.version);
+    });
+  }
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _BackHeader(title: 'About WildPath', onBack: onBack),
+          _BackHeader(title: 'About WildPath', onBack: widget.onBack),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
@@ -1575,7 +1621,8 @@ class _AboutSection extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(20)),
-                  child: Text('Version 1.0.0',
+                  child: Text(
+                      _version.isNotEmpty ? 'Version $_version' : 'Version —',
                       style: WildPathTypography.body(
                           fontSize: 11, color: Colors.white.withOpacity(0.7)))),
             ]),
@@ -1606,15 +1653,18 @@ class _AboutSection extends StatelessWidget {
                         letterSpacing: 0.12 * 10,
                         color: WildPathColors.amber)),
                 const SizedBox(height: 10),
-                _aRow('📧', 'Contact / Support', 'testdev.b@gmail.com',
-                    () => launchUrl(Uri.parse('mailto:testdev.b@gmail.com'))),
+                _aRow('📧', 'Contact / Support', 'dev.cal.apps@gmail.com',
+                    () => launchUrl(Uri.parse('mailto:dev.cal.apps@gmail.com'))),
                 const SizedBox(height: 8),
                 _aRow(
                     '💬',
                     'Send Feedback',
                     'We read every message',
                     () => launchUrl(Uri.parse(
-                        'mailto:testdev.b@gmail.com?subject=WildPath Feedback'))),
+                        'mailto:dev.cal.apps@gmail.com?subject=WildPath Feedback'))),
+                const SizedBox(height: 8),
+                _aRow('🔒', 'Privacy Policy', 'How we handle your data',
+                    widget.onPrivacy),
               ])),
           WildCard(
               child: Column(
@@ -1635,7 +1685,7 @@ class _AboutSection extends StatelessWidget {
               child: Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                      'WILDPATH v1.0.0 · BUILT WITH ❤️ FOR THE OUTDOORS',
+                      'WILDPATH${_version.isNotEmpty ? ' v$_version' : ''} · BUILT WITH ❤️ FOR THE OUTDOORS',
                       style: WildPathTypography.body(
                           fontSize: 9.5,
                           color: WildPathColors.stone,
@@ -1677,4 +1727,58 @@ class _AboutSection extends StatelessWidget {
             style: WildPathTypography.body(
                 fontSize: 11, color: WildPathColors.smoke)),
       ]));
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PRIVACY POLICY
+// ══════════════════════════════════════════════════════════════════════════
+class _PrivacyPolicySection extends StatelessWidget {
+  final VoidCallback onBack;
+  const _PrivacyPolicySection({required this.onBack});
+
+  Widget _section(String title, String body) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: WildCard(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              Text(title.toUpperCase(),
+                  style: WildPathTypography.body(
+                      fontSize: 10,
+                      letterSpacing: 0.12 * 10,
+                      color: WildPathColors.amber)),
+              const SizedBox(height: 8),
+              Text(body,
+                  style: WildPathTypography.body(
+                      fontSize: 13, color: WildPathColors.pine, height: 1.6)),
+            ])),
+      );
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _BackHeader(title: '🔒 Privacy Policy', onBack: onBack),
+          Text('Last updated: March 2026',
+              style: WildPathTypography.body(
+                  fontSize: 12, color: WildPathColors.smoke)),
+          const SizedBox(height: 16),
+          _section('Overview',
+              'WildPath is designed with your privacy in mind. All data you enter — trip details, gear lists, meals, emergency contacts, and profile information — is stored locally on your device only. We do not collect, transmit, or sell your personal data.'),
+          _section('Data We Collect',
+              'WildPath does not collect personal data on our servers. The following information is stored only on your device:\n\n• Your name and optional email address (entered during onboarding)\n• Trip plans, dates, locations, and notes\n• Gear lists and meal schedules\n• Emergency contact names and phone numbers\n• Budget entries\n• Camping style preferences'),
+          _section('Location Data',
+              'WildPath may request access to your device location to help identify your current position on the map. Location data is used only within the app in real time and is never stored or transmitted to any server.'),
+          _section('Third-Party Services',
+              'WildPath uses the following third-party services to provide core functionality:\n\n• Google Places API — to search and resolve campsite locations. Your search queries are sent to Google\'s servers.\n• Open-Meteo — to fetch weather forecasts. Your trip coordinates are sent to Open-Meteo\'s servers.\n• NWS / weather.gov — to retrieve weather alerts for your area.\n\nThese services have their own privacy policies. We recommend reviewing them if you have concerns.'),
+          _section('Data Retention',
+              'All app data is stored in your device\'s local storage (SharedPreferences). Uninstalling the app will permanently delete all stored data. We have no ability to recover deleted data.'),
+          _section('Children\'s Privacy',
+              'WildPath is not directed at children under 13. We do not knowingly collect information from children.'),
+          _section('Changes to This Policy',
+              'We may update this Privacy Policy from time to time. Updates will be reflected in the app with a revised date. Continued use of the app after changes constitutes acceptance of the updated policy.'),
+          _section('Contact',
+              'If you have questions about this Privacy Policy, please contact us at:\n\ndev.cal.apps@gmail.com'),
+        ]),
+      );
 }

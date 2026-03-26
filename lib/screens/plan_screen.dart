@@ -415,19 +415,22 @@ class _PlanScreenState extends State<PlanScreen> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
                           ),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text('💾',
-                                    style: TextStyle(fontSize: 16)),
-                                const SizedBox(width: 8),
-                                Text('SAVE TO MY TRIPS',
-                                    style: WildPathTypography.body(
-                                        fontSize: 12,
-                                        letterSpacing: 1.1,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white)),
-                              ]),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text('💾',
+                                      style: TextStyle(fontSize: 16)),
+                                  const SizedBox(width: 8),
+                                  Text('SAVE TO MY TRIPS',
+                                      style: WildPathTypography.body(
+                                          fontSize: 12,
+                                          letterSpacing: 1.1,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white)),
+                                ]),
+                          ),
                         )),
                     const SizedBox(width: 10),
                     Expanded(
@@ -1304,10 +1307,6 @@ class _PlanScreenState extends State<PlanScreen> {
           }
         })),
       ]),
-      const SizedBox(height: 10),
-      GhostButton('Print',
-          fullWidth: true,
-          onPressed: () => showWildToast(context, 'Print coming soon')),
     ]);
   }
 

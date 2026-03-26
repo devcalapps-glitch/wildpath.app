@@ -211,25 +211,29 @@ class GhostButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final bool fullWidth;
+  final Color? color;
   const GhostButton(this.label,
-      {this.onPressed, this.fullWidth = false, super.key});
+      {this.onPressed, this.fullWidth = false, this.color, super.key});
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: fullWidth ? double.infinity : null,
-        child: OutlinedButton(
-          onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: WildPathColors.mist, width: 1.5),
-            foregroundColor: WildPathColors.smoke,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            minimumSize: const Size(0, 48),
-            textStyle:
-                WildPathTypography.body(fontSize: 11, letterSpacing: 1.1),
-          ),
-          child: Text(label),
+  Widget build(BuildContext context) {
+    final fg = color ?? WildPathColors.smoke;
+    final border = color ?? WildPathColors.mist;
+    return SizedBox(
+      width: fullWidth ? double.infinity : null,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: border, width: 1.5),
+          foregroundColor: fg,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          minimumSize: const Size(0, 48),
+          textStyle: WildPathTypography.body(fontSize: 11, letterSpacing: 1.1),
         ),
-      );
+        child: Text(label),
+      ),
+    );
+  }
 }
 
 class TipCard extends StatelessWidget {
