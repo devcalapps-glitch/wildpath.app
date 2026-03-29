@@ -140,4 +140,4 @@ is web-only and does not appear on Android. Emoji render natively on device.
 
 ## Developer
 
-testdev.b@gmail.com
+dev.cal.apps@gmail.com
