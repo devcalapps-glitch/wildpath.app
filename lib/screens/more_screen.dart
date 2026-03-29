@@ -2635,7 +2635,7 @@ class _PrivacyPolicySection extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: WildPathColors.amber.withOpacity(0.4)),
+                border: Border.all(color: WildPathColors.amber.withValues(alpha: 0.4)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(

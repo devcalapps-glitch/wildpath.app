@@ -33,7 +33,7 @@ android {
     defaultConfig {
         applicationId = "com.wildpath.app"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

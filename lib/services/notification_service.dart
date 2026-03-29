@@ -24,7 +24,6 @@ class NotificationService {
 
     // Persist timezone name for background isolate use
     final prefs = await SharedPreferences.getInstance();
-    final tzName = DateTime.now().timeZoneName;
     // Store the UTC offset in minutes — timezone package needs a named zone
     // We use the device UTC offset and map to a fixed-offset zone
     final offsetMinutes = DateTime.now().timeZoneOffset.inMinutes;
