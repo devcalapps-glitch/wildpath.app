@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WildPath Privacy Policy</title>
+    <meta
+      name="description"
+      content="WildPath privacy policy — how we handle your trip data, location, camera, and third-party services. Plain language for outdoor enthusiasts."
+    />
+    <style>
+      :root {
+        --pine: #17351e;
+        --forest: #285231;
+        --moss: #4e7b49;
+        --mist: #ddecd4;
+        --cream: #f8f3e7;
+        --white: #ffffff;
+        --smoke: #708271;
+        --stone: #ccbfa8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(78, 123, 73, 0.12), transparent 34%),
+          linear-gradient(180deg, #f4efe4 0%, var(--cream) 100%);
+        color: var(--pine);
+        line-height: 1.65;
+      }
+
+      .shell {
+        width: min(880px, calc(100% - 32px));
+        margin: 48px auto;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        background: linear-gradient(135deg, var(--pine), var(--forest));
+        color: var(--white);
+        border-radius: 24px;
+        padding: 40px 36px;
+        box-shadow: 0 18px 48px rgba(23, 53, 30, 0.22);
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 12px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      h1 {
+        margin: 16px 0 8px;
+        font-size: clamp(32px, 5vw, 48px);
+        line-height: 1.08;
+        font-weight: 700;
+      }
+
+      .hero-sub {
+        margin: 0;
+        max-width: 640px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 16px;
+      }
+
+      .hero-meta {
+        margin: 20px 0 0;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.55);
+        letter-spacing: 0.02em;
+      }
+
+      /* ── Summary strip ── */
+      .summary-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .summary-tile {
+        background: var(--white);
+        border: 1px solid rgba(221, 236, 212, 0.9);
+        border-radius: 16px;
+        padding: 18px 16px;
+        box-shadow: 0 6px 18px rgba(23, 53, 30, 0.07);
+        text-align: center;
+      }
+
+      .summary-tile .tile-icon {
+        font-size: 24px;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+
+      .summary-tile .tile-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--forest);
+        line-height: 1.3;
+      }
+
+      .summary-tile .tile-desc {
+        font-size: 12px;
+        color: var(--smoke);
+        margin-top: 4px;
+        line-height: 1.4;
+      }
+
+      /* ── Cards ── */
+      .card {
+        margin-top: 20px;
+        background: var(--white);
+        border: 1px solid rgba(221, 236, 212, 0.95);
+        border-radius: 20px;
+        padding: 28px 28px;
+        box-shadow: 0 10px 28px rgba(23, 53, 30, 0.08);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--mist);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--forest);
+        line-height: 1.2;
+      }
+
+      p {
+        margin: 0;
+        font-size: 15px;
+        color: var(--pine);
+      }
+
+      p + p {
+        margin-top: 12px;
+      }
+
+      ul {
+        margin: 12px 0 0 0;
+        padding: 0 0 0 20px;
+        font-size: 15px;
+      }
+
+      li {
+        color: var(--pine);
+      }
+
+      li + li {
+        margin-top: 7px;
+      }
+
+      /* ── Third-party service table ── */
+      .service-grid {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .service-row {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 12px;
+        padding: 14px 16px;
+        background: #f7faf6;
+        border: 1px solid var(--mist);
+        border-radius: 12px;
+        font-size: 14px;
+      }
+
+      .service-name {
+        font-weight: 600;
+        color: var(--forest);
+        line-height: 1.35;
+      }
+
+      .service-detail {
+        color: var(--smoke);
+        line-height: 1.45;
+      }
+
+      .service-detail a {
+        color: var(--moss);
+        font-size: 13px;
+        display: inline-block;
+        margin-top: 2px;
+      }
+
+      /* ── Permission list ── */
+      .permission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .permission-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 16px;
+        background: #f7faf6;
+        border: 1px solid var(--mist);
+        border-radius: 12px;
+      }
+
+      .permission-icon {
+        font-size: 20px;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      .permission-body {
+        flex: 1;
+      }
+
+      .permission-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--forest);
+        margin-bottom: 3px;
+      }
+
+      .permission-desc {
+        font-size: 13px;
+        color: var(--smoke);
+        line-height: 1.45;
+        margin: 0;
+      }
+
+      /* ── "We don't" box ── */
+      .dont-box {
+        background: #f0f7ee;
+        border: 1.5px solid var(--mist);
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin-top: 16px;
+      }
+
+      .dont-box p {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--forest);
+        margin-bottom: 10px;
+      }
+
+      .dont-list {
+        margin: 0;
+        padding: 0 0 0 18px;
+        font-size: 14px;
+        color: var(--pine);
+        list-style: none;
+      }
+
+      .dont-list li {
+        position: relative;
+        padding-left: 6px;
+      }
+
+      .dont-list li::before {
+        content: "✗";
+        position: absolute;
+        left: -16px;
+        color: #b85c38;
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      /* ── Contact block ── */
+      .contact-block {
+        margin-top: 14px;
+        padding: 18px 20px;
+        background: #f7faf6;
+        border: 1px solid var(--mist);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .contact-label {
+        font-size: 13px;
+        color: var(--smoke);
+        margin-bottom: 2px;
+      }
+
+      .contact-email {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--forest);
+      }
+
+      .contact-email a {
+        color: var(--forest);
+        text-decoration: none;
+      }
+
+      .contact-email a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Footer ── */
+      .footer {
+        margin: 32px 0 12px;
+        text-align: center;
+        color: var(--smoke);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .footer a {
+        color: var(--moss);
+      }
+
+      a {
+        color: var(--forest);
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 640px) {
+        .shell {
+          width: min(100% - 24px, 880px);
+          margin: 24px auto;
+        }
+
+        .hero {
+          border-radius: 20px;
+          padding: 28px 22px;
+        }
+
+        .card {
+          border-radius: 16px;
+          padding: 20px 18px;
+        }
+
+        .summary-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .service-row {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
+
+        .service-detail a {
+          margin-top: 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+
+      <!-- Hero -->
+      <section class="hero">
+        <span class="eyebrow">WildPath</span>
+        <h1>Privacy Policy</h1>
+        <p class="hero-sub">
+          Your trip plans stay on your device — full stop. Here's exactly
+          what data WildPath touches, and what it never does.
+        </p>
+        <p class="hero-meta">Last updated: March 29, 2026</p>
+      </section>
+
+      <!-- At-a-glance summary -->
+      <div class="summary-strip">
+        <div class="summary-tile">
+          <div class="tile-icon">🔒</div>
+          <div class="tile-label">Stored on-device only</div>
+          <div class="tile-desc">Your data never leaves your phone to our servers</div>
+        </div>
+        <div class="summary-tile">
+          <div class="tile-icon">🚫</div>
+          <div class="tile-label">No accounts or tracking</div>
+          <div class="tile-desc">No sign-ups, no analytics, no advertising</div>
+        </div>
+        <div class="summary-tile">
+          <div class="tile-icon">🌤</div>
+          <div class="tile-label">3rd-party APIs only</div>
+          <div class="tile-desc">Weather and search use coordinates — nothing else</div>
+        </div>
+      </div>
+
+      <!-- 1. Overview -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🏕</div>
+          <h2>Overview</h2>
+        </div>
+        <p>
+          WildPath is a camping trip planner that runs entirely on your phone. There are
+          no WildPath servers, no user accounts, and no cloud sync. Everything you
+          enter — your trips, gear lists, meal plans, emergency contacts — is saved
+          locally on your device and stays there.
+        </p>
+        <p>
+          We built it this way on purpose. Your planning data is yours, and you
+          shouldn't need to hand it to us to go camping.
+        </p>
+      </section>
+
+      <!-- 2. What we store locally -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">📱</div>
+          <h2>Information Stored on Your Device</h2>
+        </div>
+        <p>
+          The following data is saved in your phone's local app storage. It is
+          encrypted using Android Keystore and is never transmitted to WildPath
+          or any third party:
+        </p>
+        <ul>
+          <li>Your name and optional email address (entered during onboarding)</li>
+          <li>Trip details — destination, dates, GPS coordinates, and notes</li>
+          <li>Gear lists and meal plans</li>
+          <li>Budget entries</li>
+          <li>Emergency contact names and phone numbers</li>
+          <li>Camping style preferences</li>
+          <li>Pass and permit information, including permit photos taken with your camera</li>
+          <li>Notification preferences</li>
+        </ul>
+        <p>
+          If you uninstall WildPath, Android automatically removes all locally
+          stored app data from your device. WildPath has no copy of it and
+          cannot recover it.
+        </p>
+      </section>
+
+      <!-- 3. What we never do -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🚫</div>
+          <h2>What WildPath Does Not Do</h2>
+        </div>
+        <p>To be direct about it:</p>
+        <div class="dont-box">
+          <p>WildPath does not:</p>
+          <ul class="dont-list">
+            <li>Send your personal data to any WildPath server — we don't have one</li>
+            <li>Create or require a user account</li>
+            <li>Include analytics or crash-reporting SDKs</li>
+            <li>Show advertising of any kind</li>
+            <li>Sell, share, or license your data to third parties</li>
+            <li>Track you across apps or websites</li>
+            <li>Store location history or build a movement profile</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 4. Device permissions -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🔑</div>
+          <h2>Device Permissions</h2>
+        </div>
+        <p>WildPath requests three permissions. Here is exactly what each one is used for:</p>
+        <div class="permission-list">
+          <div class="permission-item">
+            <div class="permission-icon">📍</div>
+            <div class="permission-body">
+              <div class="permission-title">Location</div>
+              <p class="permission-desc">
+                Used only to center the map on your current position when you open a
+                trip map view. Your device coordinates are not stored by WildPath and
+                are not sent to any service unless you explicitly search for a campsite
+                or load weather for a trip you have saved.
+              </p>
+            </div>
+          </div>
+          <div class="permission-item">
+            <div class="permission-icon">📷</div>
+            <div class="permission-body">
+              <div class="permission-title">Camera</div>
+              <p class="permission-desc">
+                Used to photograph passes and permits and save them to your trip.
+                Photos are stored locally on your device only — they are never
+                uploaded or transmitted.
+              </p>
+            </div>
+          </div>
+          <div class="permission-item">
+            <div class="permission-icon">🔔</div>
+            <div class="permission-body">
+              <div class="permission-title">Notifications</div>
+              <p class="permission-desc">
+                Used to send trip reminders and weather alerts to your device. All
+                notification logic runs on-device. Your notification preferences are
+                stored locally and can be changed or disabled at any time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Third-party services -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🌐</div>
+          <h2>Third-Party Services</h2>
+        </div>
+        <p>
+          WildPath connects to four external services to power its search and
+          weather features. These are the only external calls the app makes. Each
+          service receives only the minimum information needed to do its job — no
+          names, no account details, no emergency contacts.
+        </p>
+        <div class="service-grid">
+          <div class="service-row">
+            <div class="service-name">Google Places API</div>
+            <div class="service-detail">
+              Handles campsite and location search. When you type a destination,
+              your search query and approximate coordinates are sent to Google to
+              return matching results. Governed by the
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-name">Open-Meteo</div>
+            <div class="service-detail">
+              Provides hourly and daily weather forecasts. When you view weather
+              for a trip, the trip's stored coordinates are sent to Open-Meteo.
+              Open-Meteo is a free, open-source weather API that does not require
+              API keys or user tracking. See their
+              <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">terms</a>.
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-name">National Weather Service (weather.gov)</div>
+            <div class="service-detail">
+              Used to fetch active weather alerts for your trip area. Trip
+              coordinates are submitted to the NWS public API. NWS is a U.S.
+              government service and does not log or retain query data for
+              commercial purposes. See the
+              <a href="https://www.weather.gov/disclaimer" target="_blank" rel="noopener">weather.gov disclaimer</a>.
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-name">WeatherAPI</div>
+            <div class="service-detail">
+              An optional additional source for weather alerts. If configured,
+              trip coordinates are sent to WeatherAPI when fetching alert data.
+              See the
+              <a href="https://www.weatherapi.com/privacy.aspx" target="_blank" rel="noopener">WeatherAPI Privacy Policy</a>.
+            </div>
+          </div>
+        </div>
+        <p style="margin-top: 16px; font-size: 14px; color: var(--smoke);">
+          WildPath does not control how these providers handle request data on
+          their end. Each provider's own privacy policy governs their data practices.
+        </p>
+      </section>
+
+      <!-- 6. Data security -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🔐</div>
+          <h2>Data Security</h2>
+        </div>
+        <p>
+          Sensitive data stored in WildPath — including your profile information
+          and emergency contacts — is encrypted using Android Keystore, the
+          security system built into your device. This means even if someone
+          accessed your phone's storage directly, they could not read the data
+          without your device credentials.
+        </p>
+        <p>
+          Because WildPath stores everything locally and transmits nothing to our
+          own servers, there is no WildPath database that could be breached. The
+          security of your data is tied directly to the security of your device.
+        </p>
+      </section>
+
+      <!-- 7. Data retention -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🗑</div>
+          <h2>Data Retention and Deletion</h2>
+        </div>
+        <p>Your data lives on your device for as long as the app is installed. You are in full control:</p>
+        <ul>
+          <li>Delete individual trips, gear items, or expenses at any time from within the app</li>
+          <li>Clear all app data through your device's Settings → Apps → WildPath → Storage → Clear Data</li>
+          <li>Uninstall the app to remove all locally stored data automatically</li>
+        </ul>
+        <p>
+          WildPath holds no copy of your data. Once you delete it from your device,
+          it is gone and cannot be recovered by us.
+        </p>
+      </section>
+
+      <!-- 8. Children's privacy -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">👶</div>
+          <h2>Children's Privacy</h2>
+        </div>
+        <p>
+          WildPath is not directed at children under the age of 13, and we do
+          not knowingly collect personal information from children. If you are a
+          parent or guardian and believe your child has entered personal
+          information into WildPath, clearing app data from the device settings
+          will remove it entirely.
+        </p>
+      </section>
+
+      <!-- 9. Changes -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <h2>Changes to This Policy</h2>
+        </div>
+        <p>
+          If we update this Privacy Policy, we will revise the date at the top of
+          this page. We will not make changes that significantly affect how your
+          data is handled without updating this document. The policy in effect is
+          always the current version published at this URL.
+        </p>
+        <p>
+          Because WildPath does not have your contact details (unless you reach
+          out to us directly), we cannot notify you of changes by email.
+          Checking this page after an app update is the best way to stay current.
+        </p>
+      </section>
+
+      <!-- 10. Contact -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">✉️</div>
+          <h2>Contact</h2>
+        </div>
+        <p>Questions, concerns, or feedback about this Privacy Policy are welcome. Reach out directly:</p>
+        <div class="contact-block">
+          <div>
+            <div class="contact-label">WildPath developer contact</div>
+            <div class="contact-email">
+              <a href="mailto:dev.cal.apps@gmail.com">dev.cal.apps@gmail.com</a>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top: 14px; font-size: 14px; color: var(--smoke);">
+          We aim to respond within a few business days. For questions about how a
+          specific third-party service handles data, the links in the
+          Third-Party Services section above are the right starting point.
+        </p>
+      </section>
+
+      <p class="footer">
+        &copy; 2026 WildPath &nbsp;·&nbsp; Privacy Policy &nbsp;·&nbsp; Last updated March 29, 2026<br />
+        This policy applies to the WildPath Android app available on Google Play.
+      </p>
+
+    </main>
+  </body>
+</html>

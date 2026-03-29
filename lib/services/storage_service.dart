@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_model.dart';
 import '../models/gear_item.dart';
 import '../models/meal_item.dart';
+import '../models/permit_model.dart';
 
 class StorageService {
   static const _tripKey = 'wildpath_current_trip_v2';
@@ -17,35 +19,97 @@ class StorageService {
   static const _budgetByTripKey = 'wildpath_budget_by_trip_v1';
   static const _budgetTotalByTripKey = 'wildpath_budget_total_by_trip_v1';
   static const _emContactsByTripKey = 'wildpath_em_contacts_by_trip_v1';
+  static const _permitsByTripKey = 'wildpath_permits_by_trip_v1';
   static const _onboardingKey = 'wildpath_onboarding_done';
+  // Name and email use secure storage — kept as legacy keys only for migration
   static const _userNameKey = 'wildpath_user_name';
   static const _userEmailKey = 'wildpath_user_email';
   static const _userStyleKey = 'wildpath_user_style';
+  static const _userStylesKey = 'wildpath_user_styles';
   static const _notifTripsKey = 'wildpath_notif_trips';
   static const _notifWeatherKey = 'wildpath_notif_weather';
+  static const _notifPermissionAskedKey = 'wildpath_notif_permission_asked';
 
   late SharedPreferences _prefs;
+  final _secure = const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+
+  // In-memory cache so synchronous getters work after init()
+  String _userName = '';
+  String _userEmail = '';
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    await _migrateUserPiiToSecureStorage();
+    _userName = await _secure.read(key: _userNameKey) ?? '';
+    _userEmail = await _secure.read(key: _userEmailKey) ?? '';
     await _migrateLegacyTripData();
+  }
+
+  /// One-time migration: move plaintext name/email from SharedPreferences
+  /// into encrypted storage, then delete the plaintext copies.
+  Future<void> _migrateUserPiiToSecureStorage() async {
+    final plainName = _prefs.getString(_userNameKey);
+    final plainEmail = _prefs.getString(_userEmailKey);
+    if (plainName != null) {
+      await _secure.write(key: _userNameKey, value: plainName);
+      await _prefs.remove(_userNameKey);
+    }
+    if (plainEmail != null) {
+      await _secure.write(key: _userEmailKey, value: plainEmail);
+      await _prefs.remove(_userEmailKey);
+    }
   }
 
   // Onboarding
   bool get onboardingDone => _prefs.getBool(_onboardingKey) ?? false;
   Future<void> setOnboardingDone() => _prefs.setBool(_onboardingKey, true);
 
-  String get userName => _prefs.getString(_userNameKey) ?? '';
-  String get userEmail => _prefs.getString(_userEmailKey) ?? '';
-  String get userStyle => _prefs.getString(_userStyleKey) ?? 'Campsites';
+  String get userName => _userName;
+  String get userEmail => _userEmail;
+  List<String> get userStyles {
+    final styles = _prefs.getStringList(_userStylesKey);
+    if (styles != null && styles.isNotEmpty) return styles;
+    final legacyStyle = _prefs.getString(_userStyleKey);
+    if (legacyStyle != null && legacyStyle.isNotEmpty) return [legacyStyle];
+    return ['Campsites'];
+  }
+
+  String get userStyle => userStyles.first;
   bool get notifTrips => _prefs.getBool(_notifTripsKey) ?? true;
   bool get notifWeather => _prefs.getBool(_notifWeatherKey) ?? true;
+  bool get notifPermissionAsked =>
+      _prefs.getBool(_notifPermissionAskedKey) ?? false;
 
-  Future<void> setUserName(String v) => _prefs.setString(_userNameKey, v);
-  Future<void> setUserEmail(String v) => _prefs.setString(_userEmailKey, v);
-  Future<void> setUserStyle(String v) => _prefs.setString(_userStyleKey, v);
+  Future<void> setUserName(String v) async {
+    _userName = v;
+    await _secure.write(key: _userNameKey, value: v);
+  }
+
+  Future<void> setUserEmail(String v) async {
+    _userEmail = v;
+    await _secure.write(key: _userEmailKey, value: v);
+  }
+  Future<void> setUserStyle(String v) async {
+    await _prefs.setString(_userStyleKey, v);
+    await _prefs.setStringList(_userStylesKey, [v]);
+  }
+
+  Future<void> setUserStyles(List<String> values) async {
+    final styles = values.where((v) => v.trim().isNotEmpty).toList();
+    if (styles.isEmpty) {
+      await _prefs.remove(_userStylesKey);
+      await _prefs.remove(_userStyleKey);
+      return;
+    }
+    await _prefs.setStringList(_userStylesKey, styles);
+    await _prefs.setString(_userStyleKey, styles.first);
+  }
   Future<void> setNotifTrips(bool v) => _prefs.setBool(_notifTripsKey, v);
   Future<void> setNotifWeather(bool v) => _prefs.setBool(_notifWeatherKey, v);
+  Future<void> setNotifPermissionAsked(bool v) =>
+      _prefs.setBool(_notifPermissionAskedKey, v);
 
   // Current Trip
   TripModel? loadCurrentTrip() {
@@ -93,6 +157,7 @@ class StorageService {
     _deleteScopedValue(_budgetByTripKey, id);
     _deleteScopedValue(_budgetTotalByTripKey, id);
     _deleteScopedValue(_emContactsByTripKey, id);
+    _deleteScopedValue(_permitsByTripKey, id);
     return saveSavedTrips(trips);
   }
 
@@ -160,6 +225,21 @@ class StorageService {
   Future<void> saveEmContacts(String tripId, List<EmergencyContact> contacts) =>
       _saveScopedValue(_emContactsByTripKey, tripId,
           contacts.map((e) => e.toJson()).toList());
+
+  // Permits
+  List<PermitModel> loadPermits(String tripId) {
+    final list = _loadScopedList(_permitsByTripKey, tripId);
+    if (list == null) return [];
+    try {
+      return list.map((e) => PermitModel.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> savePermits(String tripId, List<PermitModel> permits) =>
+      _saveScopedValue(
+          _permitsByTripKey, tripId, permits.map((e) => e.toJson()).toList());
 
   Future<void> _migrateLegacyTripData() async {
     final currentTrip = loadCurrentTrip();
