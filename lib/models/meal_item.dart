@@ -52,13 +52,24 @@ class MealItem {
 
 // ── Budget ────────────────────────────────────────────────────────────────
 
-enum BudgetCategory { campsite, food, gear, fuel, permits, activities, other }
+enum BudgetCategory {
+  campsite,
+  lodging,
+  food,
+  gear,
+  fuel,
+  permits,
+  activities,
+  other
+}
 
 extension BudgetCategoryExt on BudgetCategory {
   String get label {
     switch (this) {
       case BudgetCategory.campsite:
         return 'Campsite';
+      case BudgetCategory.lodging:
+        return 'Lodging';
       case BudgetCategory.food:
         return 'Food';
       case BudgetCategory.gear:
@@ -78,6 +89,8 @@ extension BudgetCategoryExt on BudgetCategory {
     switch (this) {
       case BudgetCategory.campsite:
         return '🏕';
+      case BudgetCategory.lodging:
+        return '🏨';
       case BudgetCategory.food:
         return '🍔';
       case BudgetCategory.gear:

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -c credential.helper='' push \"https://devcalapps-glitch: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@github.com/devcalapps-glitch/wildpath.app.git\" main)"
+    ]
+  }
+}

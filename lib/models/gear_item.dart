@@ -66,7 +66,7 @@ class GearLists {
   }
 
   static const Map<String, List<Map<String, String>>> _campsites = {
-    'Shelter': [
+    'Shelter & Sleep': [
       {'label': 'Tent', 'qty': ''},
       {'label': 'Tent footprint / groundsheet', 'qty': ''},
       {'label': 'Sleeping bag', 'qty': 'per person'},
@@ -74,7 +74,7 @@ class GearLists {
       {'label': 'Camp pillow', 'qty': 'per person'},
       {'label': 'Tarp or rain fly', 'qty': ''},
     ],
-    'Kitchen': [
+    'Kitchen & Food': [
       {'label': 'Camp stove', 'qty': ''},
       {'label': 'Fuel canisters', 'qty': '2+'},
       {'label': 'Cookpot and pan', 'qty': ''},
@@ -105,7 +105,7 @@ class GearLists {
       {'label': 'Warm hat and gloves', 'qty': ''},
       {'label': 'Sun hat', 'qty': 'per person'},
     ],
-    'Hygiene': [
+    'Hygiene & Essentials': [
       {'label': 'Toothbrush and toothpaste', 'qty': 'per person'},
       {'label': 'Biodegradable soap', 'qty': ''},
       {'label': 'Hand sanitizer', 'qty': ''},
@@ -114,7 +114,7 @@ class GearLists {
       {'label': 'Bug repellent', 'qty': ''},
       {'label': 'Quick-dry towel', 'qty': 'per person'},
     ],
-    'Camp Extras': [
+    'Camp Setup & Extras': [
       {'label': 'Camp chairs', 'qty': 'per person'},
       {'label': 'Camp table', 'qty': ''},
       {'label': 'Lantern or string lights', 'qty': ''},
@@ -126,18 +126,18 @@ class GearLists {
   };
 
   static const Map<String, List<Map<String, String>>> _backpacking = {
-    'Pack and Carry': [
+    'Pack & Carry': [
       {'label': 'Backpack (50-70L)', 'qty': ''},
       {'label': 'Pack rain cover', 'qty': ''},
       {'label': 'Trekking poles', 'qty': ''},
       {'label': 'Pack liner (dry bag)', 'qty': ''},
     ],
-    'Ultralight Shelter': [
+    'Shelter & Sleep': [
       {'label': 'Ultralight tent or bivy', 'qty': ''},
       {'label': 'Sleeping bag (3-season)', 'qty': 'per person'},
       {'label': 'Sleeping pad (R-value 2+)', 'qty': 'per person'},
     ],
-    'Water and Food': [
+    'Water & Food': [
       {'label': 'Water filter (Sawyer / Katadyn)', 'qty': ''},
       {'label': 'Water bottles or reservoir', 'qty': '2L+'},
       {'label': 'Purification tablets (backup)', 'qty': ''},
@@ -147,7 +147,7 @@ class GearLists {
       {'label': 'High-calorie snacks', 'qty': ''},
       {'label': 'Spork and cook pot', 'qty': ''},
     ],
-    'Navigation and Safety': [
+    'Safety & Navigation': [
       {'label': 'Topo map (waterproof / printed)', 'qty': ''},
       {'label': 'Compass', 'qty': ''},
       {'label': 'GPS device or loaded phone', 'qty': ''},
@@ -156,7 +156,7 @@ class GearLists {
       {'label': 'Emergency bivy', 'qty': ''},
       {'label': 'Headlamp and spare batteries', 'qty': ''},
     ],
-    'Clothing (Layered)': [
+    'Clothing': [
       {'label': 'Moisture-wicking base layer', 'qty': ''},
       {'label': 'Insulating mid-layer', 'qty': ''},
       {'label': 'Waterproof shell jacket', 'qty': ''},
@@ -174,10 +174,13 @@ class GearLists {
   };
 
   static const Map<String, List<Map<String, String>>> _rvVan = {
-    'Vehicle and Mechanics': [
+    'Vehicle Prep': [
       {'label': 'Tire pressure check', 'qty': ''},
       {'label': 'Spare tire', 'qty': ''},
       {'label': 'Jump cables or jump starter', 'qty': ''},
+      {'label': 'Tool kit (basic)', 'qty': ''},
+    ],
+    'Utilities & Hookups': [
       {'label': 'RV leveling blocks', 'qty': ''},
       {'label': 'Wheel chocks', 'qty': ''},
       {'label': 'Sewer hose kit', 'qty': ''},
@@ -185,7 +188,7 @@ class GearLists {
       {'label': 'Power cord (30/50 amp)', 'qty': ''},
       {'label': 'Surge protector', 'qty': ''},
     ],
-    'Kitchen': [
+    'Kitchen & Food': [
       {'label': 'Propane tanks (full)', 'qty': ''},
       {'label': 'Cookware set', 'qty': ''},
       {'label': 'Dishes and utensils', 'qty': 'per person'},
@@ -193,50 +196,49 @@ class GearLists {
       {'label': 'Cooler or 12V fridge', 'qty': ''},
       {'label': 'Trash bags', 'qty': ''},
     ],
-    'Sleeping and Comfort': [
+    'Sleep & Comfort': [
       {'label': 'Bedding and blankets', 'qty': ''},
       {'label': 'Pillows', 'qty': 'per person'},
       {'label': 'Window covers / blackout curtains', 'qty': ''},
     ],
-    'Outdoor Living': [
+    'Outdoor Setup': [
       {'label': 'Camp chairs', 'qty': 'per person'},
       {'label': 'Awning or shade canopy', 'qty': ''},
       {'label': 'Outdoor rug', 'qty': ''},
     ],
-    'Safety': [
+    'Safety & Essentials': [
       {'label': 'Smoke detector (check battery)', 'qty': ''},
       {'label': 'CO detector', 'qty': ''},
       {'label': 'Fire extinguisher', 'qty': ''},
       {'label': 'First-aid kit', 'qty': ''},
       {'label': 'Flashlight or headlamp', 'qty': 'per person'},
-      {'label': 'Tool kit (basic)', 'qty': ''},
     ],
   };
 
   static const Map<String, List<Map<String, String>>> _onTheWater = {
-    'Watercraft and Gear': [
+    'Watercraft & Paddling': [
       {'label': 'Kayak, canoe, or SUP', 'qty': ''},
       {'label': 'Paddles', 'qty': 'per person'},
-      {'label': 'PFDs (life jackets)', 'qty': 'per person'},
       {'label': 'Dry bags', 'qty': ''},
       {'label': 'Bilge pump and sponge', 'qty': ''},
+    ],
+    'Safety & Essentials': [
+      {'label': 'PFDs (life jackets)', 'qty': 'per person'},
       {'label': 'Throw rope', 'qty': ''},
       {'label': 'Float plan (filed)', 'qty': ''},
-    ],
-    'Camping Basics': [
-      {'label': 'Waterproof tent', 'qty': ''},
-      {'label': 'Sleeping bag', 'qty': 'per person'},
-      {'label': 'Sleeping pad', 'qty': 'per person'},
-      {'label': 'Tarp', 'qty': ''},
-    ],
-    'Water Safety': [
       {'label': 'Water filter or purification', 'qty': ''},
       {'label': 'Sunscreen (water-resistant)', 'qty': ''},
       {'label': 'Sun hat and sunglasses', 'qty': 'per person'},
       {'label': 'Whistle (on PFD)', 'qty': 'per person'},
       {'label': 'Signal mirror', 'qty': ''},
     ],
-    'Kitchen': [
+    'Shelter & Sleep': [
+      {'label': 'Waterproof tent', 'qty': ''},
+      {'label': 'Sleeping bag', 'qty': 'per person'},
+      {'label': 'Sleeping pad', 'qty': 'per person'},
+      {'label': 'Tarp', 'qty': ''},
+    ],
+    'Kitchen & Food': [
       {'label': 'Camp stove', 'qty': ''},
       {'label': 'Fuel', 'qty': ''},
       {'label': 'Cookware', 'qty': ''},
@@ -245,12 +247,12 @@ class GearLists {
   };
 
   static const Map<String, List<Map<String, String>>> _cabins = {
-    'Bedding and Comfort': [
+    'Sleep & Comfort': [
       {'label': 'Sleeping bags or extra blankets', 'qty': 'per person'},
       {'label': 'Pillows', 'qty': 'per person'},
       {'label': 'Slippers or indoor shoes', 'qty': ''},
     ],
-    'Kitchen and Food': [
+    'Kitchen & Food': [
       {'label': 'Groceries and meal plan', 'qty': ''},
       {'label': 'Coffee and tea supplies', 'qty': ''},
       {'label': 'Spices and condiments', 'qty': ''},
@@ -263,13 +265,13 @@ class GearLists {
       {'label': 'Books', 'qty': ''},
       {'label': 'Bluetooth speaker', 'qty': ''},
     ],
-    'Outdoor': [
+    'Outdoor Gear': [
       {'label': 'Hiking boots', 'qty': 'per person'},
       {'label': 'Rain jackets', 'qty': 'per person'},
       {'label': 'Firewood (check if provided)', 'qty': ''},
       {'label': 'Bug spray', 'qty': ''},
     ],
-    'Essentials': [
+    'Essentials & Safety': [
       {'label': 'Toiletries', 'qty': 'per person'},
       {'label': 'Towels', 'qty': 'per person'},
       {'label': 'First-aid kit', 'qty': ''},
@@ -291,7 +293,7 @@ class GearLists {
       {'label': 'Water filter and purification tabs', 'qty': ''},
       {'label': 'Collapsible water containers', 'qty': ''},
     ],
-    'Shelter': [
+    'Shelter & Sleep': [
       {'label': 'Heavy-duty tent or wall tent', 'qty': ''},
       {'label': 'Ground tarp', 'qty': ''},
       {'label': 'Sleeping bag (rated for temps)', 'qty': 'per person'},
@@ -304,12 +306,12 @@ class GearLists {
       {'label': 'Paracord (100 ft)', 'qty': ''},
       {'label': 'Duct tape', 'qty': ''},
     ],
-    'Food Storage': [
+    'Kitchen & Food Storage': [
       {'label': 'Bear-proof cooler or canister', 'qty': ''},
       {'label': 'Dry food supply (extra days)', 'qty': ''},
       {'label': 'Camp stove and extra fuel', 'qty': ''},
     ],
-    'Safety': [
+    'Safety & Navigation': [
       {'label': 'First-aid kit (comprehensive)', 'qty': ''},
       {'label': 'Emergency bivy', 'qty': ''},
       {'label': 'Fire extinguisher', 'qty': ''},
@@ -320,12 +322,12 @@ class GearLists {
   };
 
   static const Map<String, List<Map<String, String>>> _groupCamp = {
-    'Group Shelter': [
+    'Shelter & Shade': [
       {'label': 'Large group tent or multiple tents', 'qty': ''},
       {'label': 'Canopy or shade shelter (12x12+)', 'qty': ''},
       {'label': 'Tarps (extras)', 'qty': ''},
     ],
-    'Group Kitchen': [
+    'Kitchen & Food': [
       {'label': 'Camp stove (2-burner)', 'qty': ''},
       {'label': 'Large cookpots', 'qty': ''},
       {'label': 'Large cooler(s)', 'qty': ''},
@@ -335,14 +337,14 @@ class GearLists {
       {'label': 'Dish washing station', 'qty': ''},
       {'label': 'Extra trash bags', 'qty': '4+'},
     ],
-    'Comfort and Fun': [
+    'Comfort & Fun': [
       {'label': 'Camp chairs', 'qty': 'per person'},
       {'label': 'Folding tables', 'qty': '2'},
       {'label': 'Bluetooth speaker', 'qty': ''},
       {'label': 'Group games (Kan Jam, cornhole)', 'qty': ''},
       {'label': 'Glow sticks and lanterns', 'qty': ''},
     ],
-    'Safety': [
+    'Safety & Essentials': [
       {'label': 'First-aid kit (large)', 'qty': ''},
       {'label': 'Headlamps for all', 'qty': 'per person'},
       {'label': 'Fire extinguisher', 'qty': ''},
@@ -351,14 +353,14 @@ class GearLists {
   };
 
   static const Map<String, List<Map<String, String>>> _glamping = {
-    'Luxury Shelter': [
+    'Shelter & Comfort': [
       {'label': 'Bell tent or canvas tent', 'qty': ''},
       {'label': 'Real mattress or air mattress', 'qty': ''},
       {'label': 'Duvet and pillow set', 'qty': ''},
       {'label': 'Rugs and decor', 'qty': ''},
       {'label': 'String lights or fairy lights', 'qty': ''},
     ],
-    'Gourmet Kitchen': [
+    'Kitchen & Hosting': [
       {'label': 'Cast iron skillet', 'qty': ''},
       {'label': 'Dutch oven', 'qty': ''},
       {'label': 'Camp kitchen table', 'qty': ''},

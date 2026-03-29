@@ -46,12 +46,14 @@ class WildCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: WildPathColors.white,
+          border: Border.all(
+              color: WildPathColors.mist.withValues(alpha: 0.9), width: 1),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: WildPathColors.pine.withOpacity(0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2))
+                color: WildPathColors.pine.withValues(alpha: 0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 6))
           ],
         ),
         child: Material(
@@ -120,13 +122,13 @@ class StatsRow extends StatelessWidget {
   const StatsRow(this.stats, {super.key});
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: WildPathColors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-                color: WildPathColors.pine.withOpacity(0.06),
+                color: WildPathColors.pine.withValues(alpha: 0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 2))
           ],
@@ -143,16 +145,16 @@ class StatsRow extends StatelessWidget {
                                   right: BorderSide(color: WildPathColors.mist))
                               : null),
                       padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 8),
+                          vertical: 10, horizontal: 8),
                       child: Column(children: [
                         Text(e.value.value,
                             style: WildPathTypography.display(
-                                fontSize: 21, color: WildPathColors.forest)),
-                        const SizedBox(height: 2),
+                                fontSize: 19, color: WildPathColors.forest)),
+                        const SizedBox(height: 1),
                         Text(e.value.label,
                             style: WildPathTypography.body(
-                                fontSize: 9.5,
-                                letterSpacing: 0.95,
+                                fontSize: 9,
+                                letterSpacing: 0.85,
                                 color: WildPathColors.smoke),
                             textAlign: TextAlign.center),
                       ]),
@@ -178,7 +180,9 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
         width: fullWidth ? double.infinity : null,
-        child: ElevatedButton(onPressed: onPressed, child: Text(label)),
+        child: ElevatedButton(
+            onPressed: onPressed,
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)),
       );
 }
 
@@ -194,15 +198,17 @@ class OutlineButton2 extends StatelessWidget {
         child: OutlinedButton(
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: WildPathColors.forest, width: 2),
+            backgroundColor: WildPathColors.white,
+            side: const BorderSide(color: WildPathColors.forest, width: 1.8),
             foregroundColor: WildPathColors.forest,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            minimumSize: const Size(0, 48),
+            minimumSize: const Size(0, 50),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             textStyle: WildPathTypography.body(
-                fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w500),
+                fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w700),
           ),
-          child: Text(label),
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       );
 }
@@ -216,21 +222,23 @@ class GhostButton extends StatelessWidget {
       {this.onPressed, this.fullWidth = false, this.color, super.key});
   @override
   Widget build(BuildContext context) {
-    final fg = color ?? WildPathColors.smoke;
-    final border = color ?? WildPathColors.mist;
+    final base = color ?? WildPathColors.forest;
     return SizedBox(
       width: fullWidth ? double.infinity : null,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: border, width: 1.5),
-          foregroundColor: fg,
+          backgroundColor: base.withValues(alpha: 0.05),
+          side: BorderSide(color: base.withValues(alpha: 0.2), width: 1.2),
+          foregroundColor: base,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          minimumSize: const Size(0, 48),
-          textStyle: WildPathTypography.body(fontSize: 11, letterSpacing: 1.1),
+          minimumSize: const Size(0, 50),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          textStyle: WildPathTypography.body(
+              fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w600),
         ),
-        child: Text(label),
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
     );
   }
@@ -336,4 +344,179 @@ void showWildToast(BuildContext context, String message) {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     duration: const Duration(seconds: 2),
   ));
+}
+
+void showWildSuccessBanner(
+  BuildContext context, {
+  required String title,
+  String? subtitle,
+  String primaryLabel = 'Close',
+  VoidCallback? onPrimaryPressed,
+  String? secondaryLabel,
+  VoidCallback? onSecondaryPressed,
+}) {
+  ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
+  showDialog<void>(
+    context: context,
+    useRootNavigator: true,
+    barrierDismissible: false,
+    barrierColor: Colors.black.withValues(alpha: 0.28),
+    builder: (context) => _WildSuccessModal(
+      title: title,
+      subtitle: subtitle,
+      primaryLabel: primaryLabel,
+      onPrimaryPressed: onPrimaryPressed,
+      secondaryLabel: secondaryLabel,
+      onSecondaryPressed: onSecondaryPressed,
+    ),
+  );
+}
+
+class _WildSuccessModal extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final String primaryLabel;
+  final VoidCallback? onPrimaryPressed;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondaryPressed;
+
+  const _WildSuccessModal({
+    required this.title,
+    this.subtitle,
+    required this.primaryLabel,
+    this.onPrimaryPressed,
+    this.secondaryLabel,
+    this.onSecondaryPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) => Dialog(
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+        backgroundColor: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            decoration: BoxDecoration(
+              color: WildPathColors.forest,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: WildPathColors.fern.withValues(alpha: 0.22),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: WildPathColors.pine.withValues(alpha: 0.28),
+                  blurRadius: 28,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: WildPathColors.fern.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 28,
+                    color: WildPathColors.fern,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: WildPathTypography.body(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle!,
+                    textAlign: TextAlign.center,
+                    style: WildPathTypography.body(
+                      fontSize: 12.5,
+                      color: WildPathColors.mist.withValues(alpha: 0.94),
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onSecondaryPressed ??
+                            () => Navigator.of(context, rootNavigator: true)
+                                .pop(),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.02),
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            width: 1.2,
+                          ),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          textStyle: WildPathTypography.body(
+                            fontSize: 11,
+                            letterSpacing: 0.8,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        child: Text(
+                          secondaryLabel ?? 'Close',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onPrimaryPressed ??
+                            () => Navigator.of(context, rootNavigator: true)
+                                .pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: WildPathColors.fern,
+                          foregroundColor: WildPathColors.forest,
+                          minimumSize: const Size(0, 48),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          textStyle: WildPathTypography.body(
+                            fontSize: 11,
+                            letterSpacing: 0.8,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        child: Text(
+                          primaryLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 }

@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
+import 'package:workmanager/workmanager.dart';
 import 'theme/app_theme.dart';
 import 'models/trip_model.dart';
 import 'services/storage_service.dart';
+import 'services/notification_service.dart';
+import 'services/background_service.dart';
+import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/plan_screen.dart';
 import 'screens/gear_screen.dart';
 import 'screens/meals_screen.dart';
 import 'screens/conditions_screen.dart';
-import 'screens/more_screen.dart';
+import 'screens/more_screen.dart'
+    show MoreScreen, MapSection, BudgetSection, TripsSection;
+import 'screens/permits_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +27,33 @@ void main() async {
   ));
   final storage = StorageService();
   await storage.init();
+
+  // Initialize notification plugin and timezone data
+  await NotificationService.instance.init();
+
+  // Initialize WorkManager with the background entry point
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+
+  // First-run: ask for notification permission
+  if (!storage.notifPermissionAsked) {
+    await NotificationService.instance.requestPermission();
+    await storage.setNotifPermissionAsked(true);
+  }
+
+  // Start weather alert worker if enabled
+  if (storage.notifWeather) {
+    await startWeatherAlertWorker();
+  }
+
+  // Reschedule trip reminders that survived app kills / reboots
+  if (storage.notifTrips) {
+    try {
+      await NotificationService.instance.rescheduleAllSavedTrips(storage);
+    } catch (_) {
+      // Silently ignore — scheduling may fail if no trips are saved yet
+    }
+  }
+
   runApp(WildPathApp(storage: storage));
 }
 
@@ -46,11 +79,13 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   bool _loading = true;
+  bool _showSplash = true;
   bool _showOnboarding = false;
+  // Bottom nav: 0=Plan, 1=Weather, 2=Map, 3=More
   int _tab = 0;
-  bool _openBudget = false;
+  // Plan hub sub-tabs: 0=Trip, 1=Gear, 2=Meals, 3=Budget
+  int _planTab = 0;
   bool _triggerSave = false;
-  bool _goToSummary = false;
   late TripModel _trip;
 
   @override
@@ -69,38 +104,35 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _setTrip(TripModel t) => setState(() => _trip = t);
+
   void _setTab(int i) {
     if (i == -1) {
-      // Save Trip
+      // Trigger save sheet
       setState(() {
         _tab = 0;
+        _planTab = 0;
         _triggerSave = true;
       });
     } else if (i == -2) {
-      // View Summary
-      setState(() {
-        _tab = 0;
-        _goToSummary = true;
-      });
+      // View Summary → navigate to More tab
+      setState(() => _tab = 4);
+    } else if (i == 0 && _tab == 0) {
+      // Tapping Plan while already on Plan → reset to Trip sub-tab, scroll to top
+      setState(() => _planTab = 0);
+      _planScrollToTop?.call();
     } else {
-      setState(() {
-        _tab = i;
-        if (i != 4) _openBudget = false;
-      });
+      setState(() => _tab = i);
     }
   }
 
-  void _goToBudget() => setState(() {
-        _tab = 4;
-        _openBudget = true;
-      });
+  VoidCallback? _planScrollToTop;
 
   static const _navItems = [
-    _NavItem('🏕', 'Trip'),
-    _NavItem('🎒', 'Gear'),
-    _NavItem('🍳', 'Meals'),
-    _NavItem('⛅', 'Weather'),
-    _NavItem('☰', 'More'),
+    _NavItem(Icons.terrain_rounded, 'Plan'),
+    _NavItem(Icons.wb_cloudy_outlined, 'Weather'),
+    _NavItem(Icons.map_outlined, 'Map'),
+    _NavItem(Icons.backpack_outlined, 'My Trips'),
+    _NavItem(Icons.grid_view_rounded, 'More'),
   ];
 
   @override
@@ -110,6 +142,14 @@ class _AppShellState extends State<AppShell> {
         backgroundColor: WildPathColors.forest,
         body: Center(
             child: CircularProgressIndicator(color: WildPathColors.fern)),
+      );
+    }
+
+    if (_showSplash) {
+      return SplashScreen(
+        isFirstLaunch: _showOnboarding,
+        userName: widget.storage.userName,
+        onDone: () => setState(() => _showSplash = false),
       );
     }
 
@@ -125,48 +165,48 @@ class _AppShellState extends State<AppShell> {
 
     return Scaffold(
       body: Column(children: [
-        _TopBar(
-          trip: _trip,
-          userName: widget.storage.userName,
-        ),
+        _TopBar(trip: _trip, userName: widget.storage.userName),
         Expanded(
           child: IndexedStack(
             index: _tab,
             children: [
-              PlanScreen(
+              _PlanHub(
+                planTab: _planTab,
+                onPlanTabChanged: (i) => setState(() => _planTab = i),
                 storage: widget.storage,
                 trip: _trip,
-                onTripChanged: (t) {
-                  _setTrip(t);
-                },
+                onTripChanged: _setTrip,
                 onNewTrip: () {
                   final t = TripModel(id: const Uuid().v4());
                   setState(() {
                     _trip = t;
                     _tab = 0;
+                    _planTab = 0;
                   });
                   widget.storage.saveCurrentTrip(t);
                 },
-                onNextTab: () => _setTab(1),
-                onGoToTab: (i) => i == 4 ? _goToBudget() : _setTab(i),
                 triggerSave: _triggerSave,
-                triggerSummary: _goToSummary,
+                onSwitchTab: _setTab,
                 onFlagHandled: () => setState(() {
                   _triggerSave = false;
-                  _goToSummary = false;
                 }),
-              ),
-              GearScreen(
-                storage: widget.storage,
-                trip: _trip,
-                onNextTab: () => _setTab(2),
-              ),
-              MealsScreen(
-                storage: widget.storage,
-                trip: _trip,
-                onNextTab: _goToBudget,
+                onRegisterScrollToTop: (fn) => _planScrollToTop = fn,
               ),
               ConditionsScreen(trip: _trip),
+              MapSection(trip: _trip),
+              TripsSection(
+                storage: widget.storage,
+                currentTripId: _trip.id,
+                isActive: _tab == 3,
+                onLoadTrip: (t) {
+                  setState(() {
+                    _trip = t;
+                    _tab = 0;
+                    _planTab = 0;
+                  });
+                  widget.storage.saveCurrentTrip(t);
+                },
+              ),
               MoreScreen(
                 storage: widget.storage,
                 currentTrip: _trip,
@@ -175,11 +215,11 @@ class _AppShellState extends State<AppShell> {
                   setState(() {
                     _trip = t;
                     _tab = 0;
+                    _planTab = 0;
                   });
                   widget.storage.saveCurrentTrip(t);
                 },
                 onSwitchTab: _setTab,
-                openBudgetOnLoad: _openBudget,
               ),
             ],
           ),
@@ -187,6 +227,108 @@ class _AppShellState extends State<AppShell> {
         _BottomNav(currentTab: _tab, onTab: _setTab, items: _navItems),
       ]),
     );
+  }
+}
+
+// ── Plan Hub ────────────────────────────────────────────────────────────────
+class _PlanHub extends StatelessWidget {
+  final int planTab;
+  final ValueChanged<int> onPlanTabChanged;
+  final StorageService storage;
+  final TripModel trip;
+  final ValueChanged<TripModel> onTripChanged;
+  final VoidCallback onNewTrip;
+  final bool triggerSave;
+  final VoidCallback? onFlagHandled;
+  final ValueChanged<int> onSwitchTab;
+  final ValueChanged<VoidCallback>? onRegisterScrollToTop;
+
+  const _PlanHub({
+    required this.planTab,
+    required this.onPlanTabChanged,
+    required this.storage,
+    required this.trip,
+    required this.onTripChanged,
+    required this.onNewTrip,
+    required this.triggerSave,
+    required this.onSwitchTab,
+    this.onFlagHandled,
+    this.onRegisterScrollToTop,
+  });
+
+  static const _subTitles = [
+    '',
+    '🎒  Gear & Packing',
+    '🍳  Meal Planning',
+    '💰  Budget',
+    '📜  Permits'
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      if (planTab != 0)
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: WildPathColors.mist)),
+          ),
+          padding: const EdgeInsets.fromLTRB(4, 6, 16, 6),
+          child: Row(children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  size: 18, color: WildPathColors.forest),
+              onPressed: () => onPlanTabChanged(0),
+            ),
+            Text(
+              _subTitles[planTab],
+              style: WildPathTypography.body(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: WildPathColors.pine),
+            ),
+          ]),
+        ),
+      Expanded(
+        child: IndexedStack(
+          index: planTab,
+          children: [
+            PlanScreen(
+              storage: storage,
+              trip: trip,
+              onTripChanged: onTripChanged,
+              onNewTrip: onNewTrip,
+              onGoToTab: (i) {
+                if (i >= 1 && i <= 4) onPlanTabChanged(i);
+              },
+              onViewSavedTrips: () => onSwitchTab(3),
+              triggerSave: triggerSave,
+              onFlagHandled: onFlagHandled,
+              onRegisterScrollToTop: onRegisterScrollToTop,
+            ),
+            GearScreen(
+                storage: storage,
+                trip: trip,
+                onNextTab: () => onPlanTabChanged(2)),
+            MealsScreen(
+                storage: storage,
+                trip: trip,
+                onNextTab: () => onPlanTabChanged(3)),
+            BudgetSection(
+              storage: storage,
+              tripId: trip.id,
+              onSaveTrip: () => onSwitchTab(-1),
+              onGoToPermits: () => onPlanTabChanged(4),
+            ),
+            PermitsScreen(
+              storage: storage,
+              trip: trip,
+              onSaveTrip: () => onSwitchTab(-1),
+            ),
+          ],
+        ),
+      ),
+    ]);
   }
 }
 
@@ -267,7 +409,7 @@ class _TopBar extends StatelessWidget {
             Text(
               greeting,
               style: WildPathTypography.body(
-                  fontSize: 10, color: Colors.white.withOpacity(0.7)),
+                  fontSize: 10, color: Colors.white.withValues(alpha: 0.7)),
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
             ),
@@ -284,7 +426,8 @@ class _TopBar extends StatelessWidget {
             if (hasDates)
               Text(_fmtRange(trip.startDate, trip.endDate),
                   style: WildPathTypography.body(
-                      fontSize: 10, color: Colors.white.withOpacity(0.65)),
+                      fontSize: 10,
+                      color: Colors.white.withValues(alpha: 0.65)),
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right),
           ],
@@ -321,8 +464,11 @@ class _BottomNav extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(item.emoji,
-                        style: const TextStyle(fontSize: 22, height: 1)),
+                    Icon(item.icon,
+                        size: 24,
+                        color: active
+                            ? WildPathColors.forest
+                            : WildPathColors.stone),
                     const SizedBox(height: 3),
                     Text(item.label,
                         style: WildPathTypography.body(
@@ -353,7 +499,7 @@ class _BottomNav extends StatelessWidget {
 }
 
 class _NavItem {
-  final String emoji;
+  final IconData icon;
   final String label;
-  const _NavItem(this.emoji, this.label);
+  const _NavItem(this.icon, this.label);
 }

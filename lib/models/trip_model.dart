@@ -10,11 +10,10 @@ class TripModel {
   String endDate;
   int groupSize;
   String tripType;
-  String permitNum;
-  String permitTime;
   String notes;
   double? lat;
   double? lng;
+  bool isSpecificLocation;
   String savedAt;
 
   TripModel({
@@ -25,11 +24,10 @@ class TripModel {
     this.endDate = '',
     this.groupSize = 1,
     this.tripType = 'Campsites',
-    this.permitNum = '',
-    this.permitTime = '',
     this.notes = '',
     this.lat,
     this.lng,
+    this.isSpecificLocation = true,
     String? savedAt,
   }) : savedAt = savedAt ?? DateTime.now().toIso8601String();
 
@@ -82,11 +80,10 @@ class TripModel {
         'endDate': endDate,
         'groupSize': groupSize,
         'tripType': tripType,
-        'permitNum': permitNum,
-        'permitTime': permitTime,
         'notes': notes,
         'lat': lat,
         'lng': lng,
+        'isSpecificLocation': isSpecificLocation,
         'savedAt': savedAt,
       };
 
@@ -98,11 +95,10 @@ class TripModel {
         endDate: j['endDate'] ?? '',
         groupSize: j['groupSize'] ?? 1,
         tripType: j['tripType'] ?? 'Campsites',
-        permitNum: j['permitNum'] ?? '',
-        permitTime: j['permitTime'] ?? '',
         notes: j['notes'] ?? '',
         lat: (j['lat'] as num?)?.toDouble(),
         lng: (j['lng'] as num?)?.toDouble(),
+        isSpecificLocation: j['isSpecificLocation'] as bool? ?? true,
         savedAt: j['savedAt'] ?? '',
       );
 
@@ -118,11 +114,10 @@ class TripModel {
     String? endDate,
     int? groupSize,
     String? tripType,
-    String? permitNum,
-    String? permitTime,
     String? notes,
     Object? lat = _tripModelNoChange,
     Object? lng = _tripModelNoChange,
+    bool? isSpecificLocation,
     String? savedAt,
   }) =>
       TripModel(
@@ -133,11 +128,10 @@ class TripModel {
         endDate: endDate ?? this.endDate,
         groupSize: groupSize ?? this.groupSize,
         tripType: tripType ?? this.tripType,
-        permitNum: permitNum ?? this.permitNum,
-        permitTime: permitTime ?? this.permitTime,
         notes: notes ?? this.notes,
         lat: identical(lat, _tripModelNoChange) ? this.lat : lat as double?,
         lng: identical(lng, _tripModelNoChange) ? this.lng : lng as double?,
+        isSpecificLocation: isSpecificLocation ?? this.isSpecificLocation,
         savedAt: savedAt ?? this.savedAt,
       );
 }

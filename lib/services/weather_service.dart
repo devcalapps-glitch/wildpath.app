@@ -3,7 +3,6 @@ import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
 class WeatherData {
   final double tempF;
   final double tempC;
@@ -121,22 +120,58 @@ class WeatherAlert {
   final String description;
   final String severity;
   final String emoji;
+  final String source;
 
   const WeatherAlert({
     required this.title,
     required this.description,
     this.severity = 'moderate',
     this.emoji = '⚠',
+    this.source = 'Weather alert provider',
   });
 }
+
+// Place types that represent broad areas — no pin should be shown for these.
+const _generalPlaceTypes = {
+  'locality',
+  'sublocality',
+  'administrative_area_level_1',
+  'administrative_area_level_2',
+  'administrative_area_level_3',
+  'administrative_area_level_4',
+  'administrative_area_level_5',
+  'country',
+  'colloquial_area',
+  'political',
+  'natural_feature',
+};
+
+const _outdoorPrimaryTypes = <String>[
+  'campground',
+  'camping_cabin',
+  'lodging',
+  'rv_park',
+  'national_park',
+  'park',
+  'hiking_area',
+];
 
 class LocationResult {
   final double? lat;
   final double? lng;
   final String displayName;
   final String? placeId;
-  const LocationResult(
-      {this.lat, this.lng, required this.displayName, this.placeId});
+
+  /// True when the result is a specific place (campground, address, etc.)
+  /// and a map pin should be shown. False for cities/regions/countries.
+  final bool isSpecific;
+  const LocationResult({
+    this.lat,
+    this.lng,
+    required this.displayName,
+    this.placeId,
+    this.isSpecific = true,
+  });
 
   bool get hasCoordinates => lat != null && lng != null;
 }
@@ -146,7 +181,10 @@ class WeatherService {
   static int _activeSearchId = 0;
   static String get googleGeocodingApiKey =>
       dotenv.env['MAPS_API_KEY']?.trim() ?? '';
+  static String get weatherAlertsApiKey =>
+      dotenv.env['WEATHER_API_KEY']?.trim() ?? '';
   static bool get hasGoogleGeocodingApiKey => googleGeocodingApiKey.isNotEmpty;
+  static bool get hasWeatherAlertsApiKey => weatherAlertsApiKey.isNotEmpty;
 
   static Future<List<LocationResult>> searchLocations(String query,
       {int limit = 5, String? sessionToken}) async {
@@ -163,51 +201,74 @@ class WeatherService {
     try {
       final url =
           Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
-      final resp = await client
-          .post(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Goog-Api-Key': googleGeocodingApiKey,
-            },
-            body: jsonEncode({
-              'input': trimmed,
-              'sessionToken': sessionToken,
-              'includeQueryPredictions': false,
-              'includedPrimaryTypes': [
-                'locality',
-                'park',
-                'campground',
-                'natural_feature',
-                'tourist_attraction',
-              ],
-            }),
-          )
-          .timeout(const Duration(seconds: 8));
+      Future<List<LocationResult>> requestForTypes(List<String> types) async {
+        final resp = await client
+            .post(
+              url,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': googleGeocodingApiKey,
+              },
+              body: jsonEncode({
+                'input': trimmed,
+                'sessionToken': sessionToken,
+                'includeQueryPredictions': false,
+                'includePureServiceAreaBusinesses': false,
+                'includedPrimaryTypes': types,
+              }),
+            )
+            .timeout(const Duration(seconds: 8));
+        if (requestId != _activeSearchId) {
+          return const [];
+        }
+        if (resp.statusCode != 200) {
+          final errBody = resp.body;
+          assert(() {
+            dev.log('[Places] searchLocations error ${resp.statusCode}: $errBody',
+                name: 'WeatherService');
+            return true;
+          }());
+          throw Exception('Places API ${resp.statusCode}: $errBody');
+        }
+
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        final suggestions = (data['suggestions'] as List?) ?? const [];
+        return suggestions
+            .map((item) => item['placePrediction'] as Map<String, dynamic>?)
+            .whereType<Map<String, dynamic>>()
+            .map((prediction) => LocationResult(
+                  placeId: prediction['placeId'] as String?,
+                  displayName: prediction['text']?['text'] as String? ?? '',
+                ))
+            .where(
+                (item) => item.displayName.isNotEmpty && item.placeId != null)
+            .toList();
+      }
+
+      final outdoorResults = <LocationResult>[];
+      for (var i = 0; i < _outdoorPrimaryTypes.length; i += 5) {
+        final batch = _outdoorPrimaryTypes.skip(i).take(5).toList();
+        outdoorResults.addAll(await requestForTypes(batch));
+      }
+      final cityResults = await requestForTypes(const ['(cities)']);
       if (requestId != _activeSearchId) {
         return const [];
       }
-      if (resp.statusCode != 200) {
-        final errBody = resp.body;
-        assert(() { dev.log('[Places] searchLocations error ${resp.statusCode}: $errBody', name: 'WeatherService'); return true; }());
-        // Surface error so caller can show it to the user
-        throw Exception('Places API ${resp.statusCode}: $errBody');
+
+      final merged = <String, LocationResult>{};
+      for (final result in [...outdoorResults, ...cityResults]) {
+        final placeId = result.placeId;
+        if (placeId == null || merged.containsKey(placeId)) continue;
+        merged[placeId] = result;
       }
 
-      final data = jsonDecode(resp.body) as Map<String, dynamic>;
-      final suggestions = (data['suggestions'] as List?) ?? const [];
-      return suggestions
-          .map((item) => item['placePrediction'] as Map<String, dynamic>?)
-          .whereType<Map<String, dynamic>>()
-          .map((prediction) => LocationResult(
-                placeId: prediction['placeId'] as String?,
-                displayName: prediction['text']?['text'] as String? ?? '',
-              ))
-          .where((item) => item.displayName.isNotEmpty && item.placeId != null)
-          .take(limit)
-          .toList();
+      return merged.values.take(limit).toList();
     } catch (e) {
-      assert(() { dev.log('[Places] searchLocations exception: $e', name: 'WeatherService'); return true; }());
+      assert(() {
+        dev.log('[Places] searchLocations exception: $e',
+            name: 'WeatherService');
+        return true;
+      }());
       rethrow;
     } finally {
       if (identical(_activeSearchClient, client)) {
@@ -238,14 +299,19 @@ class WeatherService {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': googleGeocodingApiKey,
-          'X-Goog-FieldMask': 'formattedAddress,location,id',
+          'X-Goog-FieldMask': 'formattedAddress,location,id,types',
           if (sessionToken != null && sessionToken.isNotEmpty)
             'X-Goog-Session-Token': sessionToken,
         },
       ).timeout(const Duration(seconds: 8));
 
       if (resp.statusCode != 200) {
-        assert(() { dev.log('[Places] resolvePlace error ${resp.statusCode}: ${resp.body}', name: 'WeatherService'); return true; }());
+        assert(() {
+          dev.log(
+              '[Places] resolvePlace error ${resp.statusCode}: ${resp.body}',
+              name: 'WeatherService');
+          return true;
+        }());
         return null;
       }
 
@@ -255,11 +321,16 @@ class WeatherService {
         return null;
       }
 
+      final types =
+          (data['types'] as List?)?.cast<String>() ?? const <String>[];
+      final isSpecific = !types.any((t) => _generalPlaceTypes.contains(t));
+
       return LocationResult(
         placeId: data['id'] as String?,
         displayName: data['formattedAddress'] as String? ?? '',
         lat: (location['latitude'] as num).toDouble(),
         lng: (location['longitude'] as num).toDouble(),
+        isSpecific: isSpecific,
       );
     } catch (_) {
       return null;
@@ -283,36 +354,85 @@ class WeatherService {
           await http.get(weatherUrl).timeout(const Duration(seconds: 10));
       if (weatherResp.statusCode != 200) return null;
 
-      final alerts = <WeatherAlert>[];
-      try {
-        final alertResp = await http.get(
-            Uri.parse('https://api.weather.gov/alerts/active?point=$lat,$lng'),
-            headers: {
-              'User-Agent': 'WildPath/1.0'
-            }).timeout(const Duration(seconds: 6));
-        if (alertResp.statusCode == 200) {
-          final features =
-              (jsonDecode(alertResp.body)['features'] as List?) ?? [];
-          for (final f in features.take(5)) {
-            final p = f['properties'] as Map<String, dynamic>;
-            final sev = (p['severity'] as String? ?? '').toLowerCase();
-            alerts.add(WeatherAlert(
-              title: p['event'] ?? 'Weather Alert',
-              description: p['description'] ?? '',
-              severity: sev,
-              emoji: sev == 'extreme'
-                  ? '🆘'
-                  : sev == 'severe'
-                      ? '⛈'
-                      : '⚠',
-            ));
-          }
-        }
-      } catch (_) {}
+      final alerts = await _fetchAlerts(lat, lng);
 
       return WeatherData.fromOpenMeteo(jsonDecode(weatherResp.body), alerts);
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<List<WeatherAlert>> _fetchAlerts(double lat, double lng) async {
+    if (hasWeatherAlertsApiKey) {
+      final globalAlerts = await _fetchWeatherApiAlerts(lat, lng);
+      if (globalAlerts.isNotEmpty) return globalAlerts;
+    }
+    return _fetchNwsAlerts(lat, lng);
+  }
+
+  static Future<List<WeatherAlert>> _fetchWeatherApiAlerts(
+      double lat, double lng) async {
+    try {
+      final url = Uri.parse(
+        'https://api.weatherapi.com/v1/forecast.json'
+        '?key=$weatherAlertsApiKey&q=$lat,$lng&days=1&alerts=yes&aqi=no',
+      );
+      final resp = await http.get(url).timeout(const Duration(seconds: 8));
+      if (resp.statusCode != 200) return const [];
+
+      final data = jsonDecode(resp.body) as Map<String, dynamic>;
+      final alertsBlock = data['alerts'] as Map<String, dynamic>?;
+      final alertList = (alertsBlock?['alert'] as List?) ?? const [];
+      return alertList.take(5).map((item) {
+        final alert = item as Map<String, dynamic>;
+        final sev = (alert['severity'] as String? ?? '').toLowerCase();
+        return WeatherAlert(
+          title: alert['headline'] as String? ??
+              alert['event'] as String? ??
+              'Weather Alert',
+          description: alert['desc'] as String? ??
+              alert['instruction'] as String? ??
+              '',
+          severity: sev,
+          emoji: _emojiForSeverity(sev),
+          source: 'WeatherAPI alerts',
+        );
+      }).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  static Future<List<WeatherAlert>> _fetchNwsAlerts(double lat, double lng) async {
+    try {
+      final alertResp = await http.get(
+          Uri.parse('https://api.weather.gov/alerts/active?point=$lat,$lng'),
+          headers: {'User-Agent': 'WildPath/1.0'}).timeout(
+        const Duration(seconds: 6),
+      );
+      if (alertResp.statusCode != 200) return const [];
+
+      final features = (jsonDecode(alertResp.body)['features'] as List?) ?? const [];
+      return features.take(5).map((feature) {
+        final p = (feature as Map<String, dynamic>)['properties']
+            as Map<String, dynamic>;
+        final sev = (p['severity'] as String? ?? '').toLowerCase();
+        return WeatherAlert(
+          title: p['event'] ?? 'Weather Alert',
+          description: p['description'] ?? '',
+          severity: sev,
+          emoji: _emojiForSeverity(sev),
+          source: 'National Weather Service',
+        );
+      }).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  static String _emojiForSeverity(String severity) {
+    if (severity == 'extreme') return '🆘';
+    if (severity == 'severe') return '⛈';
+    return '⚠';
   }
 }
