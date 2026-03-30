@@ -5,6 +5,7 @@ import '../models/trip_model.dart';
 import '../models/gear_item.dart';
 import '../models/meal_item.dart';
 import '../models/permit_model.dart';
+import '../models/pass_item.dart';
 
 class StorageService {
   static const _tripKey = 'wildpath_current_trip_v2';
@@ -20,6 +21,7 @@ class StorageService {
   static const _budgetTotalByTripKey = 'wildpath_budget_total_by_trip_v1';
   static const _emContactsByTripKey = 'wildpath_em_contacts_by_trip_v1';
   static const _permitsByTripKey = 'wildpath_permits_by_trip_v1';
+  static const _passesKey = 'wildpath_passes_v1';
   static const _onboardingKey = 'wildpath_onboarding_done';
   // Name and email use secure storage — kept as legacy keys only for migration
   static const _userNameKey = 'wildpath_user_name';
@@ -240,6 +242,21 @@ class StorageService {
   Future<void> savePermits(String tripId, List<PermitModel> permits) =>
       _saveScopedValue(
           _permitsByTripKey, tripId, permits.map((e) => e.toJson()).toList());
+
+  // Passes Wallet (trip-independent)
+  List<PassItem> loadPasses() {
+    final s = _prefs.getString(_passesKey);
+    if (s == null) return [];
+    try {
+      final list = jsonDecode(s) as List;
+      return list.map((e) => PassItem.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> savePasses(List<PassItem> passes) => _prefs.setString(
+      _passesKey, jsonEncode(passes.map((e) => e.toJson()).toList()));
 
   Future<void> _migrateLegacyTripData() async {
     final currentTrip = loadCurrentTrip();
