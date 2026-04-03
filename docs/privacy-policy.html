@@ -389,7 +389,7 @@
           Your trip plans stay on your device — full stop. Here's exactly
           what data WildPath touches, and what it never does.
         </p>
-        <p class="hero-meta">Last updated: March 29, 2026</p>
+        <p class="hero-meta">Last updated: March 30, 2026</p>
       </section>
 
       <!-- At-a-glance summary -->
@@ -406,8 +406,8 @@
         </div>
         <div class="summary-tile">
           <div class="tile-icon">🌤</div>
-          <div class="tile-label">3rd-party APIs only</div>
-          <div class="tile-desc">Weather and search use coordinates — nothing else</div>
+          <div class="tile-label">Limited provider calls</div>
+          <div class="tile-desc">Search text and trip coordinates go only to feature providers</div>
         </div>
       </div>
 
@@ -418,38 +418,60 @@
           <h2>Overview</h2>
         </div>
         <p>
-          WildPath is a camping trip planner that runs entirely on your phone. There are
-          no WildPath servers, no user accounts, and no cloud sync. Everything you
-          enter — your trips, gear lists, meal plans, emergency contacts — is saved
-          locally on your device and stays there.
+          WildPath is a camping trip planner that does not use WildPath-operated
+          servers, user accounts, or cloud sync. The app keeps your planning data on
+          your device, not in a developer backend.
         </p>
         <p>
-          We built it this way on purpose. Your planning data is yours, and you
-          shouldn't need to hand it to us to go camping.
+          Some features do send limited data to third-party providers when you use
+          them. For example, destination search sends search text to Google Places,
+          weather screens send saved trip coordinates to weather providers, and
+          opening directions hands coordinates to your chosen maps app.
         </p>
       </section>
 
-      <!-- 2. What we store locally -->
+      <!-- 2. Planning responsibility -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">🧭</div>
+          <h2>Planning Responsibility</h2>
+        </div>
+        <p>
+          WildPath is a planning tool designed to help you organize information for
+          your trip. It is not a substitute for your own judgment, local guidance,
+          or emergency preparation.
+        </p>
+        <p>
+          Outdoor conditions, access rules, permits, trail status, weather, and rescue
+          availability can change quickly. You are responsible for verifying your plans,
+          checking official sources, and making sure you are adequately prepared before
+          heading out.
+        </p>
+      </section>
+
+      <!-- 3. What we store locally -->
       <section class="card">
         <div class="card-header">
           <div class="card-icon">📱</div>
           <h2>Information Stored on Your Device</h2>
         </div>
         <p>
-          The following data is saved in your phone's local app storage. It is
-          encrypted using Android Keystore and is never transmitted to WildPath
-          or any third party:
+          The following data is saved on your device. WildPath does not store it
+          on WildPath servers:
         </p>
         <ul>
-          <li>Your name and optional email address (entered during onboarding)</li>
-          <li>Trip details — destination, dates, GPS coordinates, and notes</li>
-          <li>Gear lists and meal plans</li>
-          <li>Budget entries</li>
-          <li>Emergency contact names and phone numbers</li>
-          <li>Camping style preferences</li>
-          <li>Pass and permit information, including permit photos taken with your camera</li>
-          <li>Notification preferences</li>
+          <li>Your name and optional email address in encrypted secure storage</li>
+          <li>Trip details — destination, dates, saved GPS coordinates, and notes — in app preferences</li>
+          <li>Gear lists, meal plans, budget entries, emergency contacts, camping preferences, and notification settings in app preferences</li>
+          <li>Pass and permit information, including permit photos or picked files, in app-managed local files plus references stored by the app</li>
         </ul>
+        <p>
+          If you use the in-app <strong>Get My Current Coordinates</strong> feature,
+          WildPath reads your device's current GPS position in real time and shows it
+          on screen for you. Those live coordinates are not automatically saved to
+          WildPath storage unless you choose a feature that stores, copies, shares,
+          or uses them for a trip.
+        </p>
         <p>
           If you uninstall WildPath, Android automatically removes all locally
           stored app data from your device. WildPath has no copy of it and
@@ -457,13 +479,13 @@
         </p>
       </section>
 
-      <!-- 3. What we never do -->
+      <!-- 4. What we never do -->
       <section class="card">
         <div class="card-header">
           <div class="card-icon">🚫</div>
           <h2>What WildPath Does Not Do</h2>
         </div>
-        <p>To be direct about it:</p>
+          <p>To be direct about it:</p>
         <div class="dont-box">
           <p>WildPath does not:</p>
           <ul class="dont-list">
@@ -471,14 +493,18 @@
             <li>Create or require a user account</li>
             <li>Include analytics or crash-reporting SDKs</li>
             <li>Show advertising of any kind</li>
-            <li>Sell, share, or license your data to third parties</li>
+            <li>Sell your data, broker it, or share it with advertisers or analytics providers</li>
             <li>Track you across apps or websites</li>
             <li>Store location history or build a movement profile</li>
           </ul>
         </div>
+        <p style="margin-top: 14px; font-size: 14px; color: var(--smoke);">
+          WildPath does make limited requests to the feature providers listed below
+          when you use search, weather, alerts, or maps functionality.
+        </p>
       </section>
 
-      <!-- 4. Device permissions -->
+      <!-- 5. Device permissions -->
       <section class="card">
         <div class="card-header">
           <div class="card-icon">🔑</div>
@@ -491,10 +517,13 @@
             <div class="permission-body">
               <div class="permission-title">Location</div>
               <p class="permission-desc">
-                Used only to center the map on your current position when you open a
-                trip map view. Your device coordinates are not stored by WildPath and
-                are not sent to any service unless you explicitly search for a campsite
-                or load weather for a trip you have saved.
+                Used only when you choose location-based features, such as opening a
+                trip map view or tapping <strong>Get My Current Coordinates</strong>
+                on the Emergency screen. Your live device coordinates are not
+                automatically stored unless you use a feature that saves them to a
+                trip. Saved trip coordinates may later be sent to weather and alert
+                providers when you load forecasts or alerts, or when background alert
+                checks are enabled.
               </p>
             </div>
           </div>
@@ -523,7 +552,7 @@
         </div>
       </section>
 
-      <!-- 5. Third-party services -->
+      <!-- 6. Third-party services -->
       <section class="card">
         <div class="card-header">
           <div class="card-icon">🌐</div>
@@ -532,16 +561,18 @@
         <p>
           WildPath connects to four external services to power its search and
           weather features. These are the only external calls the app makes. Each
-          service receives only the minimum information needed to do its job — no
-          names, no account details, no emergency contacts.
+          service receives only the minimum information needed to do its job — for
+          example destination search text or trip coordinates, but not your name,
+          email address, or emergency contacts.
         </p>
         <div class="service-grid">
           <div class="service-row">
             <div class="service-name">Google Places API</div>
             <div class="service-detail">
               Handles campsite and location search. When you type a destination,
-              your search query and approximate coordinates are sent to Google to
-              return matching results. Governed by the
+              your search query is sent to Google to return matching results and
+              place details. If you tap <strong>Open in Maps</strong>, coordinates
+              are also handed off to Google Maps or your selected maps app. Governed by the
               <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.
             </div>
           </div>
@@ -559,9 +590,9 @@
             <div class="service-name">National Weather Service (weather.gov)</div>
             <div class="service-detail">
               Used to fetch active weather alerts for your trip area. Trip
-              coordinates are submitted to the NWS public API. NWS is a U.S.
-              government service and does not log or retain query data for
-              commercial purposes. See the
+              coordinates are submitted to the NWS public API when you load alerts,
+              and may also be checked periodically in the background if weather
+              alerts are enabled. NWS is a U.S. government service. See the
               <a href="https://www.weather.gov/disclaimer" target="_blank" rel="noopener">weather.gov disclaimer</a>.
             </div>
           </div>
@@ -581,27 +612,27 @@
         </p>
       </section>
 
-      <!-- 6. Data security -->
+      <!-- 7. Data security -->
       <section class="card">
         <div class="card-header">
           <div class="card-icon">🔐</div>
           <h2>Data Security</h2>
         </div>
         <p>
-          Sensitive data stored in WildPath — including your profile information
-          and emergency contacts — is encrypted using Android Keystore, the
-          security system built into your device. This means even if someone
-          accessed your phone's storage directly, they could not read the data
-          without your device credentials.
+          Your name and email address are stored using encrypted secure storage on
+          Android. Other planning data is kept in app-local preferences and files
+          inside your device's app sandbox. Permit and pass attachments are stored
+          as local app-managed files on the device.
         </p>
         <p>
-          Because WildPath stores everything locally and transmits nothing to our
-          own servers, there is no WildPath database that could be breached. The
-          security of your data is tied directly to the security of your device.
+          Because WildPath has no developer-operated backend, there is no WildPath
+          server database containing your trips. The security of your local data is
+          tied primarily to the security of your device and the third-party feature
+          providers you choose to use.
         </p>
       </section>
 
-      <!-- 7. Data retention -->
+      <!-- 8. Data retention -->
       <section class="card">
         <div class="card-header">
           <div class="card-icon">🗑</div>
@@ -610,12 +641,18 @@
         <p>Your data lives on your device for as long as the app is installed. You are in full control:</p>
         <ul>
           <li>Delete individual trips, gear items, or expenses at any time from within the app</li>
+          <li>Delete permit or pass attachments from within the app where supported</li>
           <li>Clear all app data through your device's Settings → Apps → WildPath → Storage → Clear Data</li>
           <li>Uninstall the app to remove all locally stored data automatically</li>
         </ul>
         <p>
           WildPath holds no copy of your data. Once you delete it from your device,
           it is gone and cannot be recovered by us.
+        </p>
+        <p>
+          Requests already sent to Google Places, Open-Meteo, weather.gov, WeatherAPI,
+          or external map apps are governed by those providers' own retention and
+          privacy practices.
         </p>
       </section>
 
@@ -676,7 +713,7 @@
       </section>
 
       <p class="footer">
-        &copy; 2026 WildPath &nbsp;·&nbsp; Privacy Policy &nbsp;·&nbsp; Last updated March 29, 2026<br />
+        &copy; 2026 WildPath &nbsp;·&nbsp; Privacy Policy &nbsp;·&nbsp; Last updated April 3, 2026<br />
         This policy applies to the WildPath Android app available on Google Play.
       </p>
 
