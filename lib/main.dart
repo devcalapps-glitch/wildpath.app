@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workmanager/workmanager.dart';
 import 'theme/app_theme.dart';
@@ -20,7 +19,6 @@ import 'screens/permits_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -32,21 +30,15 @@ void main() async {
   await NotificationService.instance.init();
 
   // Initialize WorkManager with the background entry point
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
-
-  // First-run: ask for notification permission
-  if (!storage.notifPermissionAsked) {
-    await NotificationService.instance.requestPermission();
-    await storage.setNotifPermissionAsked(true);
-  }
+  await Workmanager().initialize(callbackDispatcher);
 
   // Start weather alert worker if enabled
-  if (storage.notifWeather) {
+  if (storage.notifPermissionAsked && storage.notifWeather) {
     await startWeatherAlertWorker();
   }
 
   // Reschedule trip reminders that survived app kills / reboots
-  if (storage.notifTrips) {
+  if (storage.notifPermissionAsked && storage.notifTrips) {
     try {
       await NotificationService.instance.rescheduleAllSavedTrips(storage);
     } catch (_) {
@@ -98,7 +90,10 @@ class _AppShellState extends State<AppShell> {
     final saved = widget.storage.loadCurrentTrip();
     setState(() {
       _showOnboarding = !widget.storage.onboardingDone;
-      _trip = saved ?? TripModel(id: const Uuid().v4());
+      _trip = saved ??
+          TripModel(
+            id: const Uuid().v4(),
+          );
       _loading = false;
     });
   }
@@ -158,7 +153,9 @@ class _AppShellState extends State<AppShell> {
         storage: widget.storage,
         onComplete: () => setState(() {
           _showOnboarding = false;
-          _trip = _trip.copyWith(tripType: widget.storage.userStyle);
+          _trip = _trip.copyWith(
+            tripType: widget.storage.userStyle,
+          );
         }),
       );
     }
@@ -269,7 +266,7 @@ class _PlanHub extends StatelessWidget {
     return Column(children: [
       if (planTab != 0)
         Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
             border: Border(bottom: BorderSide(color: WildPathColors.mist)),
           ),
@@ -371,7 +368,7 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasTrip = trip.name.isNotEmpty || trip.campsite.isNotEmpty;
+    final hasTrip = trip.name.isNotEmpty || trip.locationDisplay.isNotEmpty;
     final hasDates = trip.startDate.isNotEmpty;
     final greeting =
         userName.isNotEmpty ? '${_greeting()}, $userName' : _greeting();
@@ -415,7 +412,7 @@ class _TopBar extends StatelessWidget {
             ),
             if (hasTrip)
               Text(
-                trip.name.isNotEmpty ? trip.name : trip.campsite,
+                trip.name.isNotEmpty ? trip.name : trip.locationDisplay,
                 style: WildPathTypography.body(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -447,7 +444,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: WildPathColors.mist)),
         ),

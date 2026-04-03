@@ -5,6 +5,7 @@ import 'package:wildpath/models/gear_item.dart';
 import 'package:wildpath/models/meal_item.dart';
 import 'package:wildpath/models/trip_model.dart';
 import 'package:wildpath/services/storage_service.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() {
     late StorageService storage;
 
     setUp(() async {
+      setUpFlutterSecureStorageMock();
       SharedPreferences.setMockInitialValues({});
       storage = StorageService();
       await storage.init();

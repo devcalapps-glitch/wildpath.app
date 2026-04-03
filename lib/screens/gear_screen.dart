@@ -216,7 +216,7 @@ class _GearScreenState extends State<GearScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return KeyboardAwareScrollView(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -642,7 +642,9 @@ class _AddItemSheetState extends State<_AddItemSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
         top: false,
-        child: SingleChildScrollView(
+        child: KeyboardAwareScrollView(
+          padding: EdgeInsets.zero,
+          addBottomInset: false,
           child: Container(
             decoration: const BoxDecoration(
                 color: Colors.white,

@@ -28,6 +28,7 @@ class StorageService {
   static const _userEmailKey = 'wildpath_user_email';
   static const _userStyleKey = 'wildpath_user_style';
   static const _userStylesKey = 'wildpath_user_styles';
+  static const _userCountryKey = 'wildpath_user_country';
   static const _notifTripsKey = 'wildpath_notif_trips';
   static const _notifWeatherKey = 'wildpath_notif_weather';
   static const _notifPermissionAskedKey = 'wildpath_notif_permission_asked';
@@ -70,6 +71,8 @@ class StorageService {
 
   String get userName => _userName;
   String get userEmail => _userEmail;
+  String get userCountry =>
+      TripModel.normalizeCountryName(_prefs.getString(_userCountryKey) ?? '');
   List<String> get userStyles {
     final styles = _prefs.getStringList(_userStylesKey);
     if (styles != null && styles.isNotEmpty) return styles;
@@ -79,8 +82,8 @@ class StorageService {
   }
 
   String get userStyle => userStyles.first;
-  bool get notifTrips => _prefs.getBool(_notifTripsKey) ?? true;
-  bool get notifWeather => _prefs.getBool(_notifWeatherKey) ?? true;
+  bool get notifTrips => _prefs.getBool(_notifTripsKey) ?? false;
+  bool get notifWeather => _prefs.getBool(_notifWeatherKey) ?? false;
   bool get notifPermissionAsked =>
       _prefs.getBool(_notifPermissionAskedKey) ?? false;
 
@@ -93,6 +96,10 @@ class StorageService {
     _userEmail = v;
     await _secure.write(key: _userEmailKey, value: v);
   }
+
+  Future<void> setUserCountry(String v) =>
+      _prefs.setString(_userCountryKey, TripModel.normalizeCountryName(v));
+
   Future<void> setUserStyle(String v) async {
     await _prefs.setString(_userStyleKey, v);
     await _prefs.setStringList(_userStylesKey, [v]);
@@ -108,6 +115,7 @@ class StorageService {
     await _prefs.setStringList(_userStylesKey, styles);
     await _prefs.setString(_userStyleKey, styles.first);
   }
+
   Future<void> setNotifTrips(bool v) => _prefs.setBool(_notifTripsKey, v);
   Future<void> setNotifWeather(bool v) => _prefs.setBool(_notifWeatherKey, v);
   Future<void> setNotifPermissionAsked(bool v) =>
@@ -145,10 +153,11 @@ class StorageService {
   Future<void> saveTrip(TripModel trip) {
     final trips = loadSavedTrips();
     final idx = trips.indexWhere((t) => t.id == trip.id);
-    if (idx >= 0)
+    if (idx >= 0) {
       trips[idx] = trip;
-    else
+    } else {
       trips.insert(0, trip);
+    }
     return saveSavedTrips(trips);
   }
 
@@ -249,7 +258,9 @@ class StorageService {
     if (s == null) return [];
     try {
       final list = jsonDecode(s) as List;
-      return list.map((e) => PassItem.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => PassItem.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }

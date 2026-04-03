@@ -32,7 +32,7 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
     if (sources.isEmpty) {
       return WeatherService.hasWeatherAlertsApiKey
           ? 'Alert data checks location-based providers for the selected area.'
-          : 'Alert data is currently sourced from api.weather.gov (National Weather Service). Add WEATHER_API_KEY in .env for broader international alert coverage.';
+          : 'Alert data is currently sourced from api.weather.gov (National Weather Service). Pass WEATHER_API_KEY with --dart-define for broader international alert coverage.';
     }
     return 'Alert data provided by ${sources.join(', ')}.';
   }
@@ -46,9 +46,11 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
   @override
   void didUpdateWidget(ConditionsScreen old) {
     super.didUpdateWidget(old);
-    final tripChanged = old.trip.campsite != widget.trip.campsite ||
-        old.trip.lat != widget.trip.lat ||
-        old.trip.lng != widget.trip.lng;
+    final tripChanged =
+        old.trip.locationSearchQuery != widget.trip.locationSearchQuery ||
+            old.trip.placeId != widget.trip.placeId ||
+            old.trip.lat != widget.trip.lat ||
+            old.trip.lng != widget.trip.lng;
     if (tripChanged) {
       _loadCurrentTrip();
     }
@@ -58,7 +60,7 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
       widget.trip.lat != null && widget.trip.lng != null;
 
   bool get _hasTripLocation =>
-      widget.trip.campsite.trim().isNotEmpty || _hasTripCoordinates;
+      widget.trip.locationSearchQuery.trim().isNotEmpty || _hasTripCoordinates;
 
   void _clearLocationState() {
     _loadRequestId++;
@@ -73,7 +75,7 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
   }
 
   Future<void> _loadCurrentTrip() async {
-    final location = widget.trip.campsite.trim();
+    final location = widget.trip.locationSearchQuery.trim();
     if (!_hasTripLocation || location.isEmpty) {
       _clearLocationState();
       return;
@@ -90,13 +92,16 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
     });
     try {
       LocationResult? loc;
-      if (_hasTripCoordinates && location == widget.trip.campsite) {
+      if (_hasTripCoordinates && location == widget.trip.locationSearchQuery) {
         loc = LocationResult(
             lat: widget.trip.lat!,
             lng: widget.trip.lng!,
-            displayName: location);
+            displayName: widget.trip.locationDisplay);
       } else {
-        loc = await WeatherService.geocode(location);
+        loc = await WeatherService.geocode(
+          location,
+          country: widget.trip.country,
+        );
       }
       if (!mounted || requestId != _loadRequestId) return;
       if (loc == null) {
@@ -124,18 +129,20 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
       final weather =
           await WeatherService.fetchWeather(resolvedLoc.lat!, resolvedLoc.lng!);
       if (mounted && requestId == _loadRequestId) {
+        final locationLabel = widget.trip.locationDisplay.trim().isNotEmpty
+            ? widget.trip.locationDisplay.trim()
+            : resolvedLoc.displayName.split(',').take(2).join(',').trim();
         setState(() {
           _weather = weather;
-          _locationLabel =
-              resolvedLoc.displayName.split(',').take(2).join(',').trim();
+          _locationLabel = locationLabel;
           _briefingCards = weather == null
               ? const []
               : RangerInsightGenerator.generate(
                   weather: weather,
                   shelter: widget.trip.tripType.toShelterType(),
-                  locationName: _locationLabel.isNotEmpty
-                      ? _locationLabel
-                      : widget.trip.campsite,
+                  locationName: locationLabel.isNotEmpty
+                      ? locationLabel
+                      : widget.trip.locationDisplay,
                 );
           _loading = false;
           if (weather == null) {
@@ -156,7 +163,7 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
+  Widget build(BuildContext context) => KeyboardAwareScrollView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const PageTitle('Conditions', subtitle: 'Forecast  Alerts  Briefing'),
@@ -185,8 +192,8 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                     Text(
-                        widget.trip.campsite.isNotEmpty
-                            ? widget.trip.campsite
+                        widget.trip.locationDisplay.isNotEmpty
+                            ? widget.trip.locationDisplay
                             : 'No location set',
                         style: WildPathTypography.body(
                             fontSize: 14,
@@ -255,9 +262,9 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
           else if (_weather == null)
             EmptyState(
               emoji: '🌤',
-              message: widget.trip.campsite.isEmpty
-                  ? 'Add a campsite location in the Plan tab to see weather and alerts.'
-                  : 'Tap Refresh to load conditions for ${widget.trip.campsite}.',
+              message: widget.trip.locationDisplay.isEmpty
+                  ? 'Add a destination in the Plan tab to see weather and alerts.'
+                  : 'Tap Refresh to load conditions for ${widget.trip.locationDisplay}.',
             )
           else
             _buildWeather(_weather!),
@@ -376,7 +383,7 @@ class _ConditionsScreenState extends State<ConditionsScreen> {
           EmptyState(
             emoji: '✅',
             message:
-                'No active weather alerts were returned for ${_locationLabel.isNotEmpty ? _locationLabel : widget.trip.campsite}.',
+                'No active weather alerts were returned for ${_locationLabel.isNotEmpty ? _locationLabel : widget.trip.locationDisplay}.',
           )
         else ...[
           ...w.alerts.map((a) => Container(

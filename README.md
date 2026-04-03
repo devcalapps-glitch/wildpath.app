@@ -99,22 +99,33 @@ Emergency numbers automatically adapt to the trip's GPS coordinates:
 
 ### Google Places API
 
-Location autocomplete uses Google Places API via a local `.env` file.
+Location autocomplete uses a build-time define, not a bundled `.env` file.
 
-1. Copy `.env.example` to `.env`
-2. Add your key:
-
-```env
-MAPS_API_KEY=your-google-places-api-key
+```bash
+flutter run --dart-define=MAPS_API_KEY=your-google-places-api-key
 ```
 
-3. Enable `Places API (New)` in your Google Cloud project.
+For release builds:
 
-`.env` is git-ignored — your key will not be committed.
+```bash
+flutter build appbundle --release \
+  --dart-define=MAPS_API_KEY=your-google-places-api-key
+```
+
+Enable `Places API (New)` in your Google Cloud project and restrict the key to
+your Android app package name and signing certificate.
 
 ### Weather
 
 Weather data comes from [Open-Meteo](https://open-meteo.com/) (free, no key required) and [weather.gov](https://www.weather.gov/) alerts (US only, no key required).
+
+If you later add a broader weather provider key, pass it the same way:
+
+```bash
+flutter build appbundle --release \
+  --dart-define=MAPS_API_KEY=your-google-places-api-key \
+  --dart-define=WEATHER_API_KEY=your-weather-api-key
+```
 
 ---
 
@@ -125,11 +136,13 @@ Weather data comes from [Open-Meteo](https://open-meteo.com/) (free, no key requ
 flutter build apk --debug
 
 # Release APK
-flutter build apk --release
+flutter build apk --release \
+  --dart-define=MAPS_API_KEY=your-google-places-api-key
 # → build/app/outputs/flutter-apk/app-release.apk
 
 # Release App Bundle (Play Store)
-flutter build appbundle --release
+flutter build appbundle --release \
+  --dart-define=MAPS_API_KEY=your-google-places-api-key
 # → build/app/outputs/bundle/release/app-release.aab
 ```
 
@@ -145,7 +158,7 @@ keyAlias=upload
 keyPassword=your-key-password
 ```
 
-If `android/key.properties` is missing, release builds fall back to the debug keystore (not suitable for Play Store submission).
+Release builds now fail if `android/key.properties` is missing. This is intentional so you do not accidentally ship an AAB signed with the wrong key.
 
 ---
 

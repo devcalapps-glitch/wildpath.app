@@ -267,7 +267,9 @@ class _PermitsScreenState extends State<PermitsScreen> {
               EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
           child: SafeArea(
             top: false,
-            child: SingleChildScrollView(
+            child: KeyboardAwareScrollView(
+              padding: EdgeInsets.zero,
+              addBottomInset: false,
               child: Container(
                 decoration: const BoxDecoration(
                     color: Colors.white,
@@ -642,7 +644,7 @@ class _PermitsScreenState extends State<PermitsScreen> {
     return Column(children: [
       Expanded(
         child: _permits.isEmpty
-            ? SingleChildScrollView(
+            ? KeyboardAwareScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -659,7 +661,7 @@ class _PermitsScreenState extends State<PermitsScreen> {
                       ),
                     ]),
               )
-            : ListView(
+            : KeyboardAwareListView(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                 children: [
                   const PageTitle('Permits',

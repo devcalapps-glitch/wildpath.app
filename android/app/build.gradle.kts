@@ -10,9 +10,17 @@ plugins {
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 val hasReleaseSigning = keystorePropertiesFile.exists()
+val isReleaseBuildRequested =
+    gradle.startParameter.taskNames.any { taskName ->
+        taskName.contains("release", ignoreCase = true)
+    }
 
 if (hasReleaseSigning) {
     keystorePropertiesFile.inputStream().use(keystoreProperties::load)
+}
+
+check(!isReleaseBuildRequested || hasReleaseSigning) {
+    "Release signing is required. Create android/key.properties and configure your upload keystore before building a release artifact."
 }
 
 android {
@@ -62,12 +70,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig =
-                if (hasReleaseSigning) {
-                    signingConfigs.getByName("release")
-                } else {
-                    signingConfigs.getByName("debug")
-                }
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

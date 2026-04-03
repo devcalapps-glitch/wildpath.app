@@ -171,6 +171,80 @@ class StatItem {
   const StatItem({required this.value, required this.label});
 }
 
+class KeyboardDismissOnTap extends StatelessWidget {
+  final Widget child;
+  const KeyboardDismissOnTap({required this.child, super.key});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: child,
+      );
+}
+
+class KeyboardAwareScrollView extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final ScrollController? controller;
+  final bool addBottomInset;
+
+  const KeyboardAwareScrollView({
+    required this.child,
+    required this.padding,
+    this.controller,
+    this.addBottomInset = true,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedPadding = padding.copyWith(
+      bottom: padding.bottom +
+          (addBottomInset ? MediaQuery.viewInsetsOf(context).bottom : 0),
+    );
+    return KeyboardDismissOnTap(
+      child: SingleChildScrollView(
+        controller: controller,
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: resolvedPadding,
+        child: child,
+      ),
+    );
+  }
+}
+
+class KeyboardAwareListView extends StatelessWidget {
+  final List<Widget> children;
+  final EdgeInsets padding;
+  final ScrollController? controller;
+  final bool addBottomInset;
+
+  const KeyboardAwareListView({
+    required this.children,
+    required this.padding,
+    this.controller,
+    this.addBottomInset = true,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedPadding = padding.copyWith(
+      bottom: padding.bottom +
+          (addBottomInset ? MediaQuery.viewInsetsOf(context).bottom : 0),
+    );
+    return KeyboardDismissOnTap(
+      child: ListView(
+        controller: controller,
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: resolvedPadding,
+        children: children,
+      ),
+    );
+  }
+}
+
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;

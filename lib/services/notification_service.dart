@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest_all.dart' as tzData;
+import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_model.dart';
 import 'storage_service.dart';
@@ -20,7 +20,7 @@ class NotificationService {
   // Weather alerts: 90000 + sequential
 
   Future<void> init() async {
-    tzData.initializeTimeZones();
+    tz_data.initializeTimeZones();
 
     // Persist timezone name for background isolate use
     final prefs = await SharedPreferences.getInstance();
@@ -49,17 +49,15 @@ class NotificationService {
       description: 'NWS severe weather alerts for your campsite',
       importance: Importance.max,
     );
-    final androidPlugin =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.createNotificationChannel(trips);
     await androidPlugin?.createNotificationChannel(weather);
   }
 
   Future<bool> requestPermission() async {
-    final androidPlugin =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     return await androidPlugin?.requestNotificationsPermission() ?? false;
   }
 
@@ -78,8 +76,11 @@ class NotificationService {
     await cancelTripReminders(trip.id);
 
     final now = DateTime.now();
-    final tripName =
-        trip.name.isNotEmpty ? trip.name : (trip.campsite.isNotEmpty ? trip.campsite : 'your trip');
+    final tripName = trip.name.isNotEmpty
+        ? trip.name
+        : (trip.locationDisplay.isNotEmpty
+            ? trip.locationDisplay
+            : 'your trip');
 
     for (final daysBefore in [2, 1]) {
       final reminderDate = start.subtract(Duration(days: daysBefore));
@@ -100,7 +101,7 @@ class NotificationService {
         title,
         body,
         _toTZ(scheduledAt),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
             _channelIdTrips,
             'Trip Reminders',

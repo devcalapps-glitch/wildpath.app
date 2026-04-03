@@ -80,7 +80,9 @@ class _MealsScreenState extends State<MealsScreen> {
             bottom: MediaQuery.viewInsetsOf(sheetContext).bottom),
         child: SafeArea(
           top: false,
-          child: SingleChildScrollView(
+          child: KeyboardAwareScrollView(
+            padding: EdgeInsets.zero,
+            addBottomInset: false,
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -319,7 +321,7 @@ class _MealsScreenState extends State<MealsScreen> {
     children.add(OutlineButton2('Next: Track Your Budget →',
         fullWidth: true, onPressed: widget.onNextTab));
 
-    return SingleChildScrollView(
+    return KeyboardAwareScrollView(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: children),
