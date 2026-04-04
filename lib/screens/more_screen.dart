@@ -3770,7 +3770,7 @@ class _PrivacyPolicySection extends StatelessWidget {
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () => launchUrl(
-              Uri.parse('https://jade-lolly-1a2c94.netlify.app'),
+              Uri.parse('https://wildpath-app.netlify.app'),
               mode: LaunchMode.externalApplication,
             ),
             child: Container(

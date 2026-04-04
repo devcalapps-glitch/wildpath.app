@@ -284,7 +284,7 @@ class WeatherService {
   static http.Client? _activeSearchClient;
   static int _activeSearchId = 0;
   static const _defaultPlacesProxyUrl =
-      'https://jade-lolly-1a2c94.netlify.app/.netlify/functions/places-proxy';
+      'https://wildpath-app.netlify.app/.netlify/functions/places-proxy';
   static String? placesProxyUrlOverride;
   static String get googleGeocodingApiKey =>
       const String.fromEnvironment('MAPS_API_KEY').trim();

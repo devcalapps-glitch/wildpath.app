@@ -1,0 +1,28 @@
+{
+  "name": "wildpath_clean",
+  "version": "1.0.0",
+  "description": "WildPath local web assets and Netlify function tooling.",
+  "private": true,
+  "scripts": {
+    "netlify:dev": "netlify dev --port 8899 --functions-port 9900 --framework '#static'",
+    "netlify:dev:debug": "netlify dev --port 8899 --functions-port 9900 --framework '#static' --debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devcalapps-glitch/wildpath.app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/devcalapps-glitch/wildpath.app/issues"
+  },
+  "homepage": "https://github.com/devcalapps-glitch/wildpath.app#readme",
+  "engines": {
+    "node": "22.x"
+  },
+  "devDependencies": {
+    "netlify-cli": "^24.9.0"
+  }
+}

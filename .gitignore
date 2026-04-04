@@ -51,3 +51,7 @@ app.*.map.json
 /kotlin/*.properties
 *.jks
 *.keystore
+
+# Local Netlify folder
+.netlify
+node_modules
