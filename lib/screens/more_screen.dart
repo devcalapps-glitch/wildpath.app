@@ -257,6 +257,160 @@ class _MapSectionState extends State<MapSection> {
     return WeatherService.geocode(query, country: widget.trip.country);
   }
 
+  Widget _buildEmptyMapState(String title) {
+    final hasDestination = widget.trip.locationDisplay.trim().isNotEmpty;
+    final headline = hasDestination ? 'Map placement needs coordinates' : 'Set a destination to unlock the map';
+    final body = hasDestination
+        ? 'This trip has a destination label, but no verified coordinates yet. Open Plan, choose the saved destination again, and tap a result to anchor it precisely.'
+        : 'Your map will look much better once this trip has a saved destination. Choose a campsite or area in Plan and save it to populate the map, weather, and local emergency details.';
+
+    return LayoutBuilder(
+      builder: (context, constraints) => Stack(
+        children: [
+          Positioned(
+            top: -36,
+            right: -30,
+            child: Container(
+              width: 132,
+              height: 132,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: WildPathColors.fern.withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -44,
+            left: -12,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: WildPathColors.moss.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 36),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: WildPathColors.white.withValues(alpha: 0.82),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: WildPathColors.mist),
+                      ),
+                      child: Text(
+                        'MAP WAITING FOR LOCATION',
+                        style: WildPathTypography.body(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: WildPathColors.forest,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            color: WildPathColors.forest,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    WildPathColors.pine.withValues(alpha: 0.16),
+                                blurRadius: 16,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.explore_off_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                headline,
+                                style: WildPathTypography.display(
+                                  fontSize: 20,
+                                  color: WildPathColors.forest,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                body,
+                                style: WildPathTypography.body(
+                                  fontSize: 12,
+                                  color: WildPathColors.smoke,
+                                  height: 1.6,
+                                ),
+                              ),
+                              if (title.isNotEmpty) ...[
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Current trip: $title',
+                                  style: WildPathTypography.body(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: WildPathColors.pine,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    const Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _MapSetupStep(
+                          step: '1',
+                          title: 'Open Plan',
+                          subtitle: 'Start from the trip planner',
+                        ),
+                        _MapSetupStep(
+                          step: '2',
+                          title: 'Choose destination',
+                          subtitle: 'Search and tap a result',
+                        ),
+                        _MapSetupStep(
+                          step: '3',
+                          title: 'Save trip',
+                          subtitle: 'Verified coordinates appear here',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => FutureBuilder<LocationResult?>(
       future: _locationFuture,
@@ -277,6 +431,7 @@ class _MapSectionState extends State<MapSection> {
         final title = widget.trip.locationDisplay.trim().isNotEmpty
             ? widget.trip.locationDisplay.trim()
             : widget.trip.name.trim();
+        final mapFrameHeight = hasMapLocation ? 280.0 : 360.0;
 
         return KeyboardAwareScrollView(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -315,7 +470,7 @@ class _MapSectionState extends State<MapSection> {
             ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                height: 280,
+                height: mapFrameHeight,
                 decoration: BoxDecoration(
                   color: WildPathColors.mist.withValues(alpha: 0.35),
                   border: Border.all(color: WildPathColors.mist, width: 1.5),
@@ -371,32 +526,7 @@ class _MapSectionState extends State<MapSection> {
                               ],
                             ),
                           ])
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('🗺️', style: TextStyle(fontSize: 48)),
-                              const SizedBox(height: 10),
-                              Text('Interactive Map',
-                                  style: WildPathTypography.display(
-                                      fontSize: 18,
-                                      color: WildPathColors.forest)),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
-                                child: Text(
-                                  title.isEmpty
-                                      ? 'Set a campsite in the Plan tab first'
-                                      : 'We could not locate this trip on the map yet. Search for a campsite in Plan and tap a result to save a precise spot.',
-                                  style: WildPathTypography.body(
-                                      fontSize: 12,
-                                      color: WildPathColors.smoke,
-                                      height: 1.6),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
+                        : _buildEmptyMapState(title),
               ),
             ),
             const SizedBox(height: 12),
@@ -410,13 +540,77 @@ class _MapSectionState extends State<MapSection> {
                 }
               }),
             const SizedBox(height: 16),
-            const TipCard(
-                emoji: '💡',
-                content:
-                    'Search for your campsite in the Plan tab and tap a result to save verified coordinates for the most precise map placement.'),
+            TipCard(
+                emoji: hasMapLocation ? '💡' : '🧭',
+                content: hasMapLocation
+                    ? 'Search for your campsite in the Plan tab and tap a result to save verified coordinates for the most precise map placement.'
+                    : 'The map, weather, and local emergency numbers all become more precise once the trip has a saved destination with verified coordinates.'),
           ]),
         );
       });
+}
+
+class _MapSetupStep extends StatelessWidget {
+  final String step;
+  final String title;
+  final String subtitle;
+
+  const _MapSetupStep({
+    required this.step,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 104,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.86),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: WildPathColors.mist),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 22,
+              height: 22,
+              decoration: const BoxDecoration(
+                color: WildPathColors.forest,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                step,
+                style: WildPathTypography.body(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: WildPathTypography.body(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: WildPathColors.pine,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: WildPathTypography.body(
+                fontSize: 10,
+                color: WildPathColors.smoke,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -1524,20 +1718,24 @@ class _EmergencySectionState extends State<_EmergencySection> {
         WildCard(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('EMERGENCY NUMBERS',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('EMERGENCY NUMBERS',
+                  style: WildPathTypography.body(
+                      fontSize: 10,
+                      letterSpacing: 0.12 * 10,
+                      color: WildPathColors.red)),
+              const SizedBox(height: 4),
+              Text(
+                hasLocation
+                    ? '📍 ${nums.countryName}'
+                    : 'Set location for local numbers',
                 style: WildPathTypography.body(
-                    fontSize: 10,
-                    letterSpacing: 0.12 * 10,
-                    color: WildPathColors.red)),
-            Text(
-              hasLocation
-                  ? '📍 ${nums.countryName}'
-                  : 'Set location for local numbers',
-              style: WildPathTypography.body(
-                  fontSize: 10, color: WildPathColors.smoke),
-            ),
-          ]),
+                    fontSize: 10, color: WildPathColors.smoke),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           IntrinsicHeight(
             child:
