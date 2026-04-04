@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WildPath — Your Adventure Starts Here</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --forest:   #0D1F14;
+    --bark:     #1C2B1A;
+    --moss:     #2A4028;
+    --fern:     #3D6B3A;
+    --leaf:     #5C9957;
+    --sage:     #8FBF73;
+    --mist:     #C8DEB8;
+    --snow:     #F0F5EA;
+    --amber:    #D4803A;
+    --ember:    #E8A055;
+    --sky:      #6BA3BE;
+    --stone:    #8A9B88;
+    --text-dim: rgba(200,222,184,0.55);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--forest);
+    color: var(--snow);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ──────────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 4rem;
+    background: rgba(13,31,20,0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(93,153,87,0.15);
+    transition: background 0.3s;
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.75rem;
+    text-decoration: none; color: var(--snow);
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--fern), var(--leaf));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo-icon svg { width: 20px; height: 20px; }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links {
+    display: flex; align-items: center; gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--mist);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--sage); }
+
+  .nav-cta {
+    background: var(--leaf);
+    color: var(--forest) !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    transition: background 0.2s, transform 0.15s !important;
+  }
+
+  .nav-cta:hover {
+    background: var(--sage) !important;
+    transform: translateY(-1px);
+  }
+
+  /* ── HERO ─────────────────────────────────────────────── */
+  #home {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 8rem 4rem 4rem;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 40%, rgba(61,107,58,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(93,153,87,0.12) 0%, transparent 50%);
+  }
+
+  .mountains {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    opacity: 0.18;
+  }
+
+  .stars {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 15% 20%, rgba(200,222,184,0.8) 0%, transparent 0%),
+      radial-gradient(1px 1px at 72% 8%, rgba(200,222,184,0.6) 0%, transparent 0%),
+      radial-gradient(1.5px 1.5px at 38% 35%, rgba(200,222,184,0.7) 0%, transparent 0%),
+      radial-gradient(1px 1px at 85% 28%, rgba(200,222,184,0.5) 0%, transparent 0%),
+      radial-gradient(1px 1px at 52% 15%, rgba(200,222,184,0.4) 0%, transparent 0%),
+      radial-gradient(1px 1px at 28% 55%, rgba(200,222,184,0.3) 0%, transparent 0%),
+      radial-gradient(1.5px 1.5px at 90% 60%, rgba(200,222,184,0.5) 0%, transparent 0%),
+      radial-gradient(1px 1px at 5% 45%, rgba(200,222,184,0.4) 0%, transparent 0%),
+      radial-gradient(1px 1px at 65% 50%, rgba(200,222,184,0.35) 0%, transparent 0%),
+      radial-gradient(1px 1px at 44% 72%, rgba(200,222,184,0.3) 0%, transparent 0%);
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 660px;
+    animation: fadeUp 0.9s ease both;
+  }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(93,153,87,0.15);
+    border: 1px solid rgba(93,153,87,0.3);
+    color: var(--sage);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-tag span { width: 6px; height: 6px; background: var(--sage); border-radius: 50%; }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: var(--snow);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--sage);
+  }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--mist);
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex; align-items: center; gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--leaf);
+    color: var(--forest);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.85rem 2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    border: none; cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(93,153,87,0.3);
+  }
+
+  .btn-primary:hover {
+    background: var(--sage);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(93,153,87,0.4);
+  }
+
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: transparent;
+    color: var(--mist);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    padding: 0.85rem 1.75rem;
+    border-radius: 100px;
+    text-decoration: none;
+    border: 1px solid rgba(200,222,184,0.25);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, transform 0.15s;
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(200,222,184,0.5);
+    color: var(--snow);
+    transform: translateY(-2px);
+  }
+
+  .hero-stats {
+    position: absolute; right: 4rem; top: 50%; transform: translateY(-50%);
+    z-index: 2;
+    display: flex; flex-direction: column; gap: 1.5rem;
+    animation: fadeUp 0.9s 0.2s ease both;
+  }
+
+  .stat-card {
+    background: rgba(28,43,26,0.7);
+    border: 1px solid rgba(93,153,87,0.2);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    backdrop-filter: blur(10px);
+    min-width: 160px;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sage);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── SECTION SHARED ───────────────────────────────────── */
+  section { padding: 7rem 4rem; }
+
+  .section-label {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    color: var(--sage);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-label::before {
+    content: '';
+    display: block; width: 24px; height: 1px;
+    background: var(--sage);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--snow);
+    margin-bottom: 1.25rem;
+  }
+
+  .section-intro {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--mist);
+    line-height: 1.7;
+    max-width: 580px;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(93,153,87,0.25), transparent);
+  }
+
+  /* ── FEATURES / APPS ──────────────────────────────────── */
+  #apps {
+    background: var(--bark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #apps::before {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(61,107,58,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .apps-header {
+    max-width: 680px;
+    margin-bottom: 4rem;
+  }
+
+  .apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .app-card {
+    background: var(--moss);
+    border: 1px solid rgba(93,153,87,0.15);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .app-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--fern), var(--sage));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .app-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(93,153,87,0.35);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+
+  .app-card:hover::after { transform: scaleX(1); }
+
+  .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+    font-size: 22px;
+  }
+
+  .icon-green  { background: rgba(93,153,87,0.2); }
+  .icon-amber  { background: rgba(212,128,58,0.2); }
+  .icon-sky    { background: rgba(107,163,190,0.2); }
+  .icon-mist   { background: rgba(200,222,184,0.15); }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--snow);
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--mist);
+    line-height: 1.65;
+  }
+
+  .store-badges {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    margin-top: 3.5rem;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: rgba(200,222,184,0.08);
+    border: 1px solid rgba(200,222,184,0.18);
+    color: var(--mist);
+    padding: 0.65rem 1.4rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 400;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .badge:hover {
+    background: rgba(200,222,184,0.14);
+    border-color: rgba(200,222,184,0.35);
+  }
+
+  .badge strong { font-weight: 500; color: var(--snow); }
+
+  /* ── PRIVACY ──────────────────────────────────────────── */
+  #privacy {
+    background: var(--forest);
+    position: relative;
+  }
+
+  .privacy-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+
+  .privacy-nav {
+    position: sticky;
+    top: 6rem;
+  }
+
+  .privacy-nav-title {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+
+  .privacy-nav ul {
+    list-style: none;
+    border-left: 1px solid rgba(93,153,87,0.2);
+  }
+
+  .privacy-nav li a {
+    display: block;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .privacy-nav li a:hover {
+    color: var(--sage);
+    border-left-color: var(--sage);
+  }
+
+  .privacy-content h2 { font-size: 2.25rem; margin-bottom: 0.5rem; }
+
+  .privacy-date {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 2.5rem;
+  }
+
+  .policy-block {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(93,153,87,0.12);
+  }
+
+  .policy-block:last-child { border-bottom: none; }
+
+  .policy-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--snow);
+    margin-bottom: 0.75rem;
+  }
+
+  .policy-block p, .policy-block li {
+    font-size: 0.92rem;
+    font-weight: 300;
+    color: var(--mist);
+    line-height: 1.75;
+  }
+
+  .policy-block ul {
+    padding-left: 1.25rem;
+    margin-top: 0.5rem;
+  }
+
+  .policy-block ul li { margin-bottom: 0.35rem; }
+
+  .policy-highlight {
+    background: rgba(93,153,87,0.1);
+    border: 1px solid rgba(93,153,87,0.2);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .policy-highlight p {
+    font-size: 0.9rem;
+    color: var(--sage);
+    line-height: 1.65;
+    font-weight: 400;
+  }
+
+  /* ── ABOUT ────────────────────────────────────────────── */
+  #about {
+    background: var(--bark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #about::before {
+    content: '';
+    position: absolute; bottom: -120px; left: -80px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(61,107,58,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+  }
+
+  .about-content h2 { margin-bottom: 1.25rem; }
+
+  .about-content p {
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--mist);
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+  }
+
+  .values-list {
+    list-style: none;
+    margin-top: 2rem;
+    display: flex; flex-direction: column; gap: 0.75rem;
+  }
+
+  .values-list li {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--mist);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .values-list li::before {
+    content: '';
+    display: block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--leaf);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .about-visual {
+    position: relative;
+  }
+
+  .team-card {
+    background: var(--moss);
+    border: 1px solid rgba(93,153,87,0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .team-member {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .av-green  { background: rgba(93,153,87,0.25);  color: var(--sage);  }
+  .av-amber  { background: rgba(212,128,58,0.25); color: var(--ember); }
+  .av-sky    { background: rgba(107,163,190,0.25);color: var(--sky);   }
+
+  .member-info .name {
+    font-size: 0.95rem; font-weight: 500; color: var(--snow);
+  }
+
+  .member-info .role {
+    font-size: 0.78rem; color: var(--text-dim); font-weight: 300; margin-top: 1px;
+  }
+
+  .mission-box {
+    background: linear-gradient(135deg, rgba(61,107,58,0.3), rgba(42,64,40,0.5));
+    border: 1px solid rgba(93,153,87,0.25);
+    border-radius: 20px;
+    padding: 2rem;
+  }
+
+  .mission-box .label {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sage);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+
+  .mission-box blockquote {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--mist);
+    line-height: 1.65;
+  }
+
+  /* ── FOOTER ───────────────────────────────────────────── */
+  footer {
+    background: var(--forest);
+    border-top: 1px solid rgba(93,153,87,0.15);
+    padding: 3rem 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    display: flex; align-items: center; gap: 0.6rem;
+    text-decoration: none;
+    color: var(--mist);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .footer-links {
+    display: flex; gap: 2rem; list-style: none;
+  }
+
+  .footer-links a {
+    text-decoration: none;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--sage); }
+
+  .footer-copy {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  /* ── ANIMATIONS ───────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 2rem; }
+    section { padding: 5rem 2rem; }
+    #home { padding: 7rem 2rem 4rem; }
+    .hero-stats { display: none; }
+    .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .privacy-container { grid-template-columns: 1fr; }
+    .privacy-nav { display: none; }
+    footer { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+    h1 { font-size: 2.6rem; }
+  }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .hero-actions { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────────── -->
+<nav>
+  <a href="#home" class="nav-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3L4 18h16L12 3z" fill="#C8DEB8" opacity="0.9"/>
+        <path d="M12 8L7 18h10L12 8z" fill="#3D6B3A"/>
+        <rect x="11" y="16" width="2" height="4" fill="#C8DEB8" opacity="0.7"/>
+      </svg>
+    </div>
+    <span class="logo-text">WildPath</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#apps">Our App</a></li>
+    <li><a href="https://wildpath-app.netlify.app/privacy-policy" target="_blank" rel="noopener">Privacy</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#apps" class="nav-cta">Download</a></li>
+  </ul>
+</nav>
+
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section id="home">
+  <div class="hero-bg"></div>
+  <div class="stars"></div>
+
+  <!-- Mountain silhouette SVG -->
+  <svg class="mountains" viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 320L180 160 320 250 500 80 680 200 820 100 1000 220 1180 60 1320 180 1440 120V320H0Z" fill="#3D6B3A"/>
+    <path d="M0 320L120 220 280 300 440 180 600 260 780 140 940 240 1100 160 1280 230 1440 170V320H0Z" fill="#2A4028"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-tag">
+      <span></span>
+      Adventure awaits
+    </div>
+    <h1>Find your<br><em>wild path</em><br>into nature</h1>
+    <p class="hero-sub">
+      Plan unforgettable camping trips, discover hidden trails, and explore
+      the world's best outdoor destinations — all from your pocket.
+    </p>
+    <div class="hero-actions">
+      <a href="#apps" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8l7 4-7 4z" fill="currentColor"/></svg>
+        Get the App
+      </a>
+      <a href="#about" class="btn-secondary">
+        Learn more
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-card reveal">
+      <div class="stat-num">50K+</div>
+      <div class="stat-label">Campsites mapped</div>
+    </div>
+    <div class="stat-card reveal" style="transition-delay:0.1s">
+      <div class="stat-num">120+</div>
+      <div class="stat-label">Countries covered</div>
+    </div>
+    <div class="stat-card reveal" style="transition-delay:0.2s">
+      <div class="stat-num">4.9★</div>
+      <div class="stat-label">Average rating</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+
+<!-- ── APPS ───────────────────────────────────────────── -->
+<section id="apps">
+  <div class="apps-header reveal">
+    <div class="section-label">The App</div>
+    <h2>Everything your<br>adventure needs</h2>
+    <p class="section-intro">
+      WildPath is a cross-platform camping and trail planning app built for
+      explorers of all levels. Available on iOS and Android.
+    </p>
+  </div>
+
+  <div class="apps-grid">
+    <div class="app-card reveal">
+      <div class="card-icon icon-green">🗺️</div>
+      <div class="card-title">Smart Trip Planner</div>
+      <p class="card-desc">
+        Build detailed itineraries with interactive maps, waypoints, and
+        packing checklists. Sync across all your devices.
+      </p>
+    </div>
+    <div class="app-card reveal" style="transition-delay:0.08s">
+      <div class="card-icon icon-amber">⛺</div>
+      <div class="card-title">Campsite Discovery</div>
+      <p class="card-desc">
+        Browse 50,000+ curated campsites worldwide with real photos, reviews,
+        facilities info, and live availability.
+      </p>
+    </div>
+    <div class="app-card reveal" style="transition-delay:0.16s">
+      <div class="card-icon icon-sky">🌤️</div>
+      <div class="card-title">Offline Weather &amp; Maps</div>
+      <p class="card-desc">
+        Download maps and weather forecasts before you leave. No signal?
+        No problem — WildPath works offline.
+      </p>
+    </div>
+    <div class="app-card reveal" style="transition-delay:0.24s">
+      <div class="card-icon icon-mist">🔦</div>
+      <div class="card-title">Trail Safety Tools</div>
+      <p class="card-desc">
+        Emergency SOS, location sharing, sunrise/sunset timers, and
+        wildlife awareness guides for every region.
+      </p>
+    </div>
+    <div class="app-card reveal" style="transition-delay:0.32s">
+      <div class="card-icon icon-green">🌿</div>
+      <div class="card-title">Leave No Trace Guides</div>
+      <p class="card-desc">
+        Built-in environmental guides help you tread lightly and preserve
+        wild spaces for generations to come.
+      </p>
+    </div>
+    <div class="app-card reveal" style="transition-delay:0.4s">
+      <div class="card-icon icon-amber">🤝</div>
+      <div class="card-title">Community &amp; Reviews</div>
+      <p class="card-desc">
+        Connect with fellow adventurers, share trip reports, and get
+        insider tips from the WildPath community.
+      </p>
+    </div>
+  </div>
+
+  <div class="store-badges reveal">
+    <a href="#" class="badge">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.2 1.28-2.18 3.81.03 3.02 2.65 4.03 2.68 4.04l-.05.18zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" fill="currentColor"/></svg>
+      <div><div style="font-size:0.68rem;opacity:0.6;">Download on the</div><strong>App Store</strong></div>
+    </a>
+    <a href="#" class="badge">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3.18 23.76a2 2 0 001.37-.4l.1-.08 7.72-4.46-.01-.01-2.35-2.35-6.83 7.3zm15.28-11.2L16.1 11.1l-2.58 2.58 2.58 2.58 2.37-1.37a1.37 1.37 0 000-2.33zm-14.9-8.35v16.49l6.91-6.91-6.91-9.58zM17.43 5.1l-7.72-4.46a2 2 0 00-2.08-.03L14.06 7.1l3.37-2z" fill="currentColor"/></svg>
+      <div><div style="font-size:0.68rem;opacity:0.6;">Get it on</div><strong>Google Play</strong></div>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+
+<!-- ── PRIVACY ─────────────────────────────────────────── -->
+<section id="privacy">
+  <div class="privacy-container">
+
+    <div class="privacy-nav">
+      <div class="privacy-nav-title">On this page</div>
+      <ul>
+        <li><a href="#priv-collect">What we collect</a></li>
+        <li><a href="#priv-use">How we use data</a></li>
+        <li><a href="#priv-share">Sharing</a></li>
+        <li><a href="#priv-location">Location data</a></li>
+        <li><a href="#priv-rights">Your rights</a></li>
+        <li><a href="#priv-security">Security</a></li>
+        <li><a href="#priv-contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="privacy-content reveal">
+      <div class="section-label">Legal</div>
+      <h2>Privacy Policy</h2>
+      <p class="privacy-date">Effective date: January 1, 2025 · Last updated: April 2025</p>
+
+      <div class="policy-highlight">
+        <p>
+          WildPath is built on a simple promise: your adventure data is yours.
+          We collect only what we need to make the app work, never sell your
+          personal information, and give you full control over what you share.
+        </p>
+      </div>
+
+      <div class="policy-block" id="priv-collect">
+        <h3>What we collect</h3>
+        <p>To provide WildPath's services, we collect:</p>
+        <ul>
+          <li>Account information (name, email address) when you sign up</li>
+          <li>Location data when you use map or navigation features (with your permission)</li>
+          <li>Trip plans, saved campsites, and notes you create in the app</li>
+          <li>Device identifiers and crash logs to help us fix bugs</li>
+          <li>Usage analytics (anonymized) to understand how features are used</li>
+        </ul>
+      </div>
+
+      <div class="policy-block" id="priv-use">
+        <h3>How we use your data</h3>
+        <p>Your data is used exclusively to:</p>
+        <ul>
+          <li>Deliver and personalize the WildPath experience</li>
+          <li>Sync your trips and plans across devices</li>
+          <li>Improve app performance and stability</li>
+          <li>Send account-related notifications (you can opt out anytime)</li>
+          <li>Provide customer support when you reach out to us</li>
+        </ul>
+        <p style="margin-top:0.75rem;">We do not use your data to serve advertising or build behavioral profiles for third parties.</p>
+      </div>
+
+      <div class="policy-block" id="priv-share">
+        <h3>Sharing your information</h3>
+        <p>
+          We do not sell your personal information. We share data only with
+          essential service providers (cloud hosting, crash analytics) under
+          strict data processing agreements, and only when legally required
+          by valid legal process.
+        </p>
+      </div>
+
+      <div class="policy-block" id="priv-location">
+        <h3>Location data</h3>
+        <p>
+          WildPath requests location access to show nearby campsites, enable
+          navigation, and provide weather specific to where you are. You can
+          grant "while using" or "always on" access — or deny it entirely.
+          Core features like trip planning work without location access.
+          Location data is never stored on our servers without your consent.
+        </p>
+      </div>
+
+      <div class="policy-block" id="priv-rights">
+        <h3>Your rights</h3>
+        <p>You have the right to:</p>
+        <ul>
+          <li>Access all personal data we hold about you</li>
+          <li>Correct inaccurate information at any time</li>
+          <li>Delete your account and all associated data</li>
+          <li>Export your trip data in a portable format</li>
+          <li>Opt out of non-essential communications</li>
+        </ul>
+        <p style="margin-top:0.75rem;">Submit requests via Settings → Account → Privacy, or email us directly.</p>
+      </div>
+
+      <div class="policy-block" id="priv-security">
+        <h3>Security</h3>
+        <p>
+          All data is encrypted in transit (TLS 1.3) and at rest (AES-256).
+          We conduct regular security audits and follow responsible disclosure
+          practices. If you discover a security issue, please contact us at
+          <a href="mailto:dev.cal.apps@gmail.com" style="color:var(--sage)">dev.cal.apps@gmail.com</a>.
+        </p>
+      </div>
+
+      <div class="policy-block" id="priv-contact">
+        <h3>Contact us</h3>
+        <p>
+          Questions about this policy? Reach our privacy team at
+          <a href="mailto:dev.cal.apps@gmail.com" style="color:var(--sage)">dev.cal.apps@gmail.com</a>.
+          We aim to respond within 5 business days.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+
+<!-- ── ABOUT ───────────────────────────────────────────── -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-content reveal">
+      <div class="section-label">About us</div>
+      <h2>Built by explorers,<br>for explorers</h2>
+      <p>
+        WildPath started around a campfire in 2023 when our founders kept
+        running into the same problem: planning a great camping trip took
+        hours across a dozen different apps and websites.
+      </p>
+      <p>
+        We set out to build one beautifully simple tool that handles
+        everything — from discovering your first campsite to navigating
+        backcountry trails offline. No bloat. Just adventure.
+      </p>
+      <ul class="values-list">
+        <li>We believe the outdoors should be accessible to everyone, not just experts.</li>
+        <li>We're committed to Leave No Trace and environmental stewardship.</li>
+        <li>We build for global adventurers — WildPath works in 120+ countries.</li>
+        <li>We'll never put ad revenue above your privacy or your experience.</li>
+      </ul>
+    </div>
+
+    <div class="about-visual reveal" style="transition-delay:0.15s">
+      <div class="mission-box">
+        <div class="label">Our mission</div>
+        <blockquote>
+          "To make every wild place feel less intimidating and more
+          inviting — so more people can experience the healing power
+          of spending time in nature."
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── FOOTER ─────────────────────────────────────────── -->
+<footer>
+  <a href="#home" class="footer-brand">
+    <div class="logo-icon" style="width:28px;height:28px;border-radius:8px;">
+      <svg viewBox="0 0 24 24" fill="none" style="width:16px;height:16px;"><path d="M12 3L4 18h16L12 3z" fill="#C8DEB8" opacity="0.9"/><path d="M12 8L7 18h10L12 8z" fill="#3D6B3A"/><rect x="11" y="16" width="2" height="4" fill="#C8DEB8" opacity="0.7"/></svg>
+    </div>
+    WildPath
+  </a>
+
+  <ul class="footer-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#apps">App</a></li>
+    <li><a href="https://wildpath-app.netlify.app/privacy-policy" target="_blank" rel="noopener">Privacy</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="mailto:dev.cal.apps@gmail.com">Contact</a></li>
+  </ul>
+
+  <p class="footer-copy">© 2025 WildPath. All rights reserved.</p>
+</footer>
+
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
