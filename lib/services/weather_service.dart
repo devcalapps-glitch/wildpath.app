@@ -283,12 +283,190 @@ class StructuredPlaceDetails {
 class WeatherService {
   static http.Client? _activeSearchClient;
   static int _activeSearchId = 0;
+  static const _defaultPlacesProxyUrl =
+      'https://jade-lolly-1a2c94.netlify.app/.netlify/functions/places-proxy';
+  static String? placesProxyUrlOverride;
   static String get googleGeocodingApiKey =>
       const String.fromEnvironment('MAPS_API_KEY').trim();
+  static String get placesProxyUrl =>
+      (placesProxyUrlOverride ??
+              const String.fromEnvironment(
+                'PLACES_PROXY_URL',
+                defaultValue: _defaultPlacesProxyUrl,
+              ))
+          .trim()
+          .replaceAll(RegExp(r'/+$'), '');
   static String get weatherAlertsApiKey =>
       const String.fromEnvironment('WEATHER_API_KEY').trim();
   static bool get hasGoogleGeocodingApiKey => googleGeocodingApiKey.isNotEmpty;
+  static bool get hasPlacesProxy => placesProxyUrl.isNotEmpty;
+  static bool get hasPlacesLookupConfigured =>
+      hasPlacesProxy || hasGoogleGeocodingApiKey;
   static bool get hasWeatherAlertsApiKey => weatherAlertsApiKey.isNotEmpty;
+
+  static Uri get _placesProxyUri => Uri.parse(placesProxyUrl);
+
+  static Future<http.Response> _proxyRequest(
+    http.Client client, {
+    required String operation,
+    required Map<String, dynamic> payload,
+  }) {
+    return client
+        .post(
+          _placesProxyUri,
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'operation': operation,
+            ...payload,
+          }),
+        )
+        .timeout(const Duration(seconds: 8));
+  }
+
+  static Future<http.Response> _autocompleteRequest(
+    http.Client client, {
+    required String input,
+    required List<String> types,
+    String? sessionToken,
+  }) {
+    if (hasPlacesProxy) {
+      return _proxyRequest(
+        client,
+        operation: 'autocomplete',
+        payload: {
+          'input': input,
+          'sessionToken': sessionToken,
+          'includedPrimaryTypes': types,
+        },
+      );
+    }
+
+    final url = Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
+    return client
+        .post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': googleGeocodingApiKey,
+            'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,'
+                'suggestions.placePrediction.text.text,'
+                'suggestions.placePrediction.structuredFormat.mainText.text,'
+                'suggestions.placePrediction.structuredFormat.secondaryText.text',
+          },
+          body: jsonEncode({
+            'input': input,
+            'sessionToken': sessionToken,
+            'includeQueryPredictions': false,
+            'includePureServiceAreaBusinesses': false,
+            'includedPrimaryTypes': types,
+          }),
+        )
+        .timeout(const Duration(seconds: 8));
+  }
+
+  static Future<http.Response> _searchTextRequest(
+    http.Client client, {
+    required String textQuery,
+    required int limit,
+    String? includedType,
+    required bool strictTypeFiltering,
+    String? sessionToken,
+  }) {
+    if (hasPlacesProxy) {
+      return _proxyRequest(
+        client,
+        operation: 'searchText',
+        payload: {
+          'textQuery': textQuery,
+          'pageSize': limit,
+          'strictTypeFiltering': strictTypeFiltering,
+          'sessionToken': sessionToken,
+          if (includedType != null) 'includedType': includedType,
+        },
+      );
+    }
+
+    final url = Uri.parse('https://places.googleapis.com/v1/places:searchText');
+    return client
+        .post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': googleGeocodingApiKey,
+            'X-Goog-FieldMask':
+                'places.id,places.displayName,places.formattedAddress,places.primaryType',
+            if (sessionToken != null && sessionToken.isNotEmpty)
+              'X-Goog-Session-Token': sessionToken,
+          },
+          body: jsonEncode({
+            'textQuery': textQuery,
+            'pageSize': limit,
+            'strictTypeFiltering': strictTypeFiltering,
+            if (includedType != null) 'includedType': includedType,
+            'rankPreference': 'RELEVANCE',
+          }),
+        )
+        .timeout(const Duration(seconds: 8));
+  }
+
+  static Future<http.Response> _placeDetailsRequest(
+    String placeId, {
+    String? sessionToken,
+  }) {
+    final client = http.Client();
+    if (hasPlacesProxy) {
+      return _proxyRequest(
+        client,
+        operation: 'placeDetails',
+        payload: {
+          'placeId': placeId,
+          'sessionToken': sessionToken,
+        },
+      ).whenComplete(client.close);
+    }
+
+    final url = Uri.parse('https://places.googleapis.com/v1/places/$placeId');
+    return client
+        .get(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': googleGeocodingApiKey,
+            'X-Goog-FieldMask':
+                'formattedAddress,addressComponents,location,id,types,displayName',
+            if (sessionToken != null && sessionToken.isNotEmpty)
+              'X-Goog-Session-Token': sessionToken,
+          },
+        )
+        .timeout(const Duration(seconds: 8))
+        .whenComplete(client.close);
+  }
+
+  static Future<http.Response> _reverseGeocodeRequest(
+    double lat,
+    double lng,
+  ) {
+    final client = http.Client();
+    if (hasPlacesProxy) {
+      return _proxyRequest(
+        client,
+        operation: 'reverseGeocode',
+        payload: {
+          'lat': lat,
+          'lng': lng,
+        },
+      ).whenComplete(client.close);
+    }
+
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/geocode/json'
+      '?latlng=$lat,$lng&key=$googleGeocodingApiKey',
+    );
+    return client
+        .get(url)
+        .timeout(const Duration(seconds: 8))
+        .whenComplete(client.close);
+  }
 
   static StructuredPlaceDetails parseStructuredPlaceDetails(
     List<dynamic> rawComponents,
@@ -336,7 +514,7 @@ class WeatherService {
   static Future<List<LocationResult>> searchLocations(String query,
       {int limit = 5, String? sessionToken, String? country}) async {
     final trimmed = query.trim();
-    if (trimmed.isEmpty || !hasGoogleGeocodingApiKey) {
+    if (trimmed.isEmpty || !hasPlacesLookupConfigured) {
       return const [];
     }
     final normalizedCountry = TripModel.normalizeCountryName(country ?? '');
@@ -347,32 +525,16 @@ class WeatherService {
     final requestId = ++_activeSearchId;
 
     try {
-      final url =
-          Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
       Future<List<LocationResult>> requestForTypes(
         String input,
         List<String> types,
       ) async {
-        final resp = await client
-            .post(
-              url,
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': googleGeocodingApiKey,
-                'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,'
-                    'suggestions.placePrediction.text.text,'
-                    'suggestions.placePrediction.structuredFormat.mainText.text,'
-                    'suggestions.placePrediction.structuredFormat.secondaryText.text',
-              },
-              body: jsonEncode({
-                'input': input,
-                'sessionToken': sessionToken,
-                'includeQueryPredictions': false,
-                'includePureServiceAreaBusinesses': false,
-                'includedPrimaryTypes': types,
-              }),
-            )
-            .timeout(const Duration(seconds: 8));
+        final resp = await _autocompleteRequest(
+          client,
+          input: input,
+          types: types,
+          sessionToken: sessionToken,
+        );
         if (requestId != _activeSearchId) {
           return const [];
         }
@@ -620,7 +782,6 @@ class WeatherService {
       return const [];
     }
 
-    final url = Uri.parse('https://places.googleapis.com/v1/places:searchText');
     final typeGroups = _textSearchTypesForQuery(query);
     final queryVariants = _textSearchQueries(query);
     final merged = <String, LocationResult>{};
@@ -630,26 +791,14 @@ class WeatherService {
       String? includedType,
       required bool strictTypeFiltering,
     }) async {
-      final resp = await client
-          .post(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Goog-Api-Key': googleGeocodingApiKey,
-              'X-Goog-FieldMask':
-                  'places.id,places.displayName,places.formattedAddress,places.primaryType',
-              if (sessionToken != null && sessionToken.isNotEmpty)
-                'X-Goog-Session-Token': sessionToken,
-            },
-            body: jsonEncode({
-              'textQuery': textQuery,
-              'pageSize': limit,
-              'strictTypeFiltering': strictTypeFiltering,
-              if (includedType != null) 'includedType': includedType,
-              'rankPreference': 'RELEVANCE',
-            }),
-          )
-          .timeout(const Duration(seconds: 8));
+      final resp = await _searchTextRequest(
+        client,
+        textQuery: textQuery,
+        limit: limit,
+        includedType: includedType,
+        strictTypeFiltering: strictTypeFiltering,
+        sessionToken: sessionToken,
+      );
 
       if (requestId != _activeSearchId) {
         return;
@@ -798,23 +947,15 @@ class WeatherService {
     String placeId, {
     String? sessionToken,
   }) async {
-    if (!hasGoogleGeocodingApiKey || placeId.trim().isEmpty) {
+    if (!hasPlacesLookupConfigured || placeId.trim().isEmpty) {
       return null;
     }
 
     try {
-      final url = Uri.parse('https://places.googleapis.com/v1/places/$placeId');
-      final resp = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': googleGeocodingApiKey,
-          'X-Goog-FieldMask':
-              'formattedAddress,addressComponents,location,id,types',
-          if (sessionToken != null && sessionToken.isNotEmpty)
-            'X-Goog-Session-Token': sessionToken,
-        },
-      ).timeout(const Duration(seconds: 8));
+      final resp = await _placeDetailsRequest(
+        placeId,
+        sessionToken: sessionToken,
+      );
 
       if (resp.statusCode != 200) {
         assert(() {
@@ -875,14 +1016,10 @@ class WeatherService {
     double lat,
     double lng,
   ) async {
-    if (!hasGoogleGeocodingApiKey) return null;
+    if (!hasPlacesLookupConfigured) return null;
 
     try {
-      final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json'
-        '?latlng=$lat,$lng&key=$googleGeocodingApiKey',
-      );
-      final resp = await http.get(url).timeout(const Duration(seconds: 8));
+      final resp = await _reverseGeocodeRequest(lat, lng);
       if (resp.statusCode != 200) {
         assert(() {
           dev.log(

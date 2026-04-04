@@ -1504,7 +1504,7 @@ class _PlanScreenState extends State<PlanScreen> {
     _locationSearchDebounce?.cancel();
     final trimmed = query.trim();
 
-    if (trimmed.length < 2 || !WeatherService.hasGoogleGeocodingApiKey) {
+    if (trimmed.length < 2 || !WeatherService.hasPlacesLookupConfigured) {
       if (_locationSuggestions.isNotEmpty ||
           _isSearchingLocations ||
           _locationSearchAttempted) {
@@ -1556,8 +1556,8 @@ class _PlanScreenState extends State<PlanScreen> {
       return;
     }
 
-    if (!WeatherService.hasGoogleGeocodingApiKey) {
-      showWildToast(context, 'Google Places is not configured');
+    if (!WeatherService.hasPlacesLookupConfigured) {
+      showWildToast(context, 'Location search is not configured');
       return;
     }
 
@@ -1804,14 +1804,15 @@ class _PlanScreenState extends State<PlanScreen> {
       ]);
 
   Widget _locationHelperText() {
-    final isLocationSearchConfigured = WeatherService.hasGoogleGeocodingApiKey;
+    final isLocationSearchConfigured =
+        WeatherService.hasPlacesLookupConfigured;
     final hasVerifiedLocation = _trip.lat != null && _trip.lng != null;
 
     return Text(
       _isLocationLocked
           ? 'Country and ${_autopopulatedRegionLabel.toLowerCase()} are linked to the selected destination. Edit the destination or use Open Map to recalculate them.'
           : !isLocationSearchConfigured
-              ? 'Google Places is not configured. Pass MAPS_API_KEY with --dart-define.'
+              ? 'Location search is not configured. Pass PLACES_PROXY_URL or MAPS_API_KEY with --dart-define.'
               : hasVerifiedLocation
                   ? 'Verified map coordinates saved for this trip.'
                   : 'Choose a destination first. WildPath fills country and state/province automatically after you select a result.',
@@ -1824,7 +1825,8 @@ class _PlanScreenState extends State<PlanScreen> {
   }
 
   Widget _locationDetailsField() {
-    final isLocationSearchConfigured = WeatherService.hasGoogleGeocodingApiKey;
+    final isLocationSearchConfigured =
+        WeatherService.hasPlacesLookupConfigured;
     final hasVerifiedLocation = _trip.lat != null && _trip.lng != null;
     final showSuggestions =
         _isSearchingLocations || _locationSuggestions.isNotEmpty;

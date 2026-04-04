@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildpath/screens/plan_screen.dart';
 import 'package:wildpath/models/trip_model.dart';
 import 'package:wildpath/services/storage_service.dart';
+import 'package:wildpath/services/weather_service.dart';
 import 'test_helpers.dart';
 
 class _PlanScreenHarness extends StatefulWidget {
@@ -42,6 +43,13 @@ class _PlanScreenHarnessState extends State<_PlanScreenHarness> {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    WeatherService.placesProxyUrlOverride = '';
+  });
+
+  tearDown(() {
+    WeatherService.placesProxyUrlOverride = null;
+  });
 
   group('mergeParsedLocationRegion', () {
     test('keeps the selected state when a result omits it', () {

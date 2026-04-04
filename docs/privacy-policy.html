@@ -389,7 +389,7 @@
           Your trip plans stay on your device — full stop. Here's exactly
           what data WildPath touches, and what it never does.
         </p>
-        <p class="hero-meta">Last updated: March 30, 2026</p>
+        <p class="hero-meta">Last updated: April 3, 2026</p>
       </section>
 
       <!-- At-a-glance summary -->
@@ -418,15 +418,16 @@
           <h2>Overview</h2>
         </div>
         <p>
-          WildPath is a camping trip planner that does not use WildPath-operated
-          servers, user accounts, or cloud sync. The app keeps your planning data on
-          your device, not in a developer backend.
+          WildPath is a camping trip planner that does not use user accounts or
+          cloud sync. The app keeps your planning data on your device and does
+          not maintain a developer-run trip database.
         </p>
         <p>
           Some features do send limited data to third-party providers when you use
-          them. For example, destination search sends search text to Google Places,
-          weather screens send saved trip coordinates to weather providers, and
-          opening directions hands coordinates to your chosen maps app.
+          them. For example, destination search may be relayed through a
+          WildPath-managed serverless proxy to Google Places, weather screens
+          send saved trip coordinates to weather providers, and opening
+          directions hands coordinates to your chosen maps app.
         </p>
       </section>
 
@@ -489,7 +490,7 @@
         <div class="dont-box">
           <p>WildPath does not:</p>
           <ul class="dont-list">
-            <li>Send your personal data to any WildPath server — we don't have one</li>
+            <li>Store your personal data in a WildPath cloud database or account system</li>
             <li>Create or require a user account</li>
             <li>Include analytics or crash-reporting SDKs</li>
             <li>Show advertising of any kind</li>
@@ -500,7 +501,8 @@
         </div>
         <p style="margin-top: 14px; font-size: 14px; color: var(--smoke);">
           WildPath does make limited requests to the feature providers listed below
-          when you use search, weather, alerts, or maps functionality.
+          when you use search, weather, alerts, or maps functionality, including
+          an optional WildPath-managed search proxy.
         </p>
       </section>
 
@@ -559,20 +561,32 @@
           <h2>Third-Party Services</h2>
         </div>
         <p>
-          WildPath connects to four external services to power its search and
-          weather features. These are the only external calls the app makes. Each
+          WildPath connects to external services to power its search and weather
+          features. These are the only external calls the app makes. Each
           service receives only the minimum information needed to do its job — for
           example destination search text or trip coordinates, but not your name,
           email address, or emergency contacts.
         </p>
         <div class="service-grid">
           <div class="service-row">
+            <div class="service-name">WildPath Search Proxy</div>
+            <div class="service-detail">
+              If enabled in your app build, destination search requests are sent
+              first to a WildPath-managed serverless proxy hosted on Netlify,
+              which forwards them to Google Places. The proxy is used to keep the
+              Google web-service key off the device and is not intended to store
+              your trip plans or build user profiles.
+            </div>
+          </div>
+          <div class="service-row">
             <div class="service-name">Google Places API</div>
             <div class="service-detail">
               Handles campsite and location search. When you type a destination,
-              your search query is sent to Google to return matching results and
-              place details. If you tap <strong>Open in Maps</strong>, coordinates
-              are also handed off to Google Maps or your selected maps app. Governed by the
+              your search query is sent to Google, either directly from the app
+              or through the WildPath search proxy, to return matching results
+              and place details. If you tap <strong>Open in Maps</strong>,
+              coordinates are also handed off to Google Maps or your selected
+              maps app. Governed by the
               <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.
             </div>
           </div>
@@ -625,10 +639,11 @@
           as local app-managed files on the device.
         </p>
         <p>
-          Because WildPath has no developer-operated backend, there is no WildPath
-          server database containing your trips. The security of your local data is
-          tied primarily to the security of your device and the third-party feature
-          providers you choose to use.
+          WildPath does not maintain a cloud database containing your trips.
+          If the optional search proxy is enabled, it forwards destination search
+          requests but is not intended to store trip records. The security of your
+          local data is tied primarily to the security of your device and the
+          third-party feature providers you choose to use.
         </p>
       </section>
 

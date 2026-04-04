@@ -99,21 +99,40 @@ Emergency numbers automatically adapt to the trip's GPS coordinates:
 
 ### Google Places API
 
-Location autocomplete uses a build-time define, not a bundled `.env` file.
+WildPath supports two location-search modes:
+
+1. Recommended for production: a Netlify serverless proxy, so the Google web-service key stays server-side only.
+2. Fallback for local development: direct `MAPS_API_KEY` injection via `--dart-define`.
+
+Recommended production setup:
+
+1. Add `MAPS_API_KEY` to your Netlify site environment variables.
+2. Deploy this repo so Netlify publishes `docs/` and the `netlify/functions/places-proxy.js` function.
+3. Build the app with the proxy URL:
+
+```bash
+flutter build appbundle --release \
+  --dart-define=PLACES_PROXY_URL=https://your-site.netlify.app/.netlify/functions/places-proxy
+```
+
+Local development fallback:
 
 ```bash
 flutter run --dart-define=MAPS_API_KEY=your-google-places-api-key
 ```
 
-For release builds:
+If you intentionally want a direct release build instead of the proxy:
 
 ```bash
 flutter build appbundle --release \
   --dart-define=MAPS_API_KEY=your-google-places-api-key
 ```
 
-Enable `Places API (New)` in your Google Cloud project and restrict the key to
-your Android app package name and signing certificate.
+Enable `Places API (New)` and `Geocoding API` in your Google Cloud project.
+
+If you use the Netlify proxy, keep the Google key only in Netlify. If you use
+the direct fallback mode, understand that the key is embedded in the app and
+must be treated as exposed client-side.
 
 ### Weather
 
@@ -123,7 +142,7 @@ If you later add a broader weather provider key, pass it the same way:
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=MAPS_API_KEY=your-google-places-api-key \
+  --dart-define=PLACES_PROXY_URL=https://your-site.netlify.app/.netlify/functions/places-proxy \
   --dart-define=WEATHER_API_KEY=your-weather-api-key
 ```
 
@@ -137,12 +156,12 @@ flutter build apk --debug
 
 # Release APK
 flutter build apk --release \
-  --dart-define=MAPS_API_KEY=your-google-places-api-key
+  --dart-define=PLACES_PROXY_URL=https://your-site.netlify.app/.netlify/functions/places-proxy
 # → build/app/outputs/flutter-apk/app-release.apk
 
 # Release App Bundle (Play Store)
 flutter build appbundle --release \
-  --dart-define=MAPS_API_KEY=your-google-places-api-key
+  --dart-define=PLACES_PROXY_URL=https://your-site.netlify.app/.netlify/functions/places-proxy
 # → build/app/outputs/bundle/release/app-release.aab
 ```
 
