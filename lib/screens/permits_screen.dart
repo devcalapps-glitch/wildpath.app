@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import '../theme/app_theme.dart';
+import '../models/pass_item.dart';
 import '../models/permit_model.dart';
 import '../models/trip_model.dart';
 import '../services/storage_service.dart';
@@ -477,6 +478,191 @@ class _PermitsScreenState extends State<PermitsScreen> {
     }
   }
 
+  void _openPassAttachment(PassSideAttachment attachment) {
+    if (attachment.mimeType == 'application/pdf') {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => _PdfViewerScreen(filePath: attachment.filePath)));
+    } else {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => _ImageViewerScreen(filePath: attachment.filePath)));
+    }
+  }
+
+  void _viewPass(PassItem pass) {
+    if (!pass.hasBack) {
+      _openPassAttachment(pass.front);
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Container(
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            _DragHandle(),
+            const SizedBox(height: 16),
+            Text(pass.label,
+                style: WildPathTypography.display(
+                    fontSize: 18, color: WildPathColors.pine)),
+            const SizedBox(height: 4),
+            Text('Choose which side to open',
+                style: WildPathTypography.body(
+                    fontSize: 12, color: WildPathColors.smoke)),
+            const SizedBox(height: 12),
+            _passAttachmentRow('View Front', pass.front),
+            _passAttachmentRow('View Back', pass.back!),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _passAttachmentRow(String label, PassSideAttachment attachment) =>
+      ListTile(
+        leading: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: WildPathColors.forest.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            attachment.mimeType == 'application/pdf'
+                ? Icons.picture_as_pdf_outlined
+                : Icons.photo_outlined,
+            color: attachment.mimeType == 'application/pdf'
+                ? WildPathColors.ember
+                : WildPathColors.forest,
+            size: 20,
+          ),
+        ),
+        title: Text(label,
+            style: WildPathTypography.body(
+                fontSize: 14, color: WildPathColors.pine)),
+        subtitle: Text(
+            attachment.mimeType == 'application/pdf'
+                ? 'PDF document'
+                : 'Photo document',
+            style: WildPathTypography.body(
+                fontSize: 11, color: WildPathColors.smoke)),
+        onTap: () {
+          Navigator.pop(context);
+          _openPassAttachment(attachment);
+        },
+      );
+
+  Widget _buildPassWalletSection() {
+    final passes = widget.storage.loadPasses();
+
+    return WildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.badge_outlined,
+                  size: 18, color: WildPathColors.forest),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('MY PASSES WALLET',
+                    style: WildPathTypography.body(
+                        fontSize: 10,
+                        letterSpacing: 1.1,
+                        color: WildPathColors.smoke,
+                        fontWeight: FontWeight.w700)),
+              ),
+              Text('${passes.length}',
+                  style: WildPathTypography.display(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: WildPathColors.forest)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (passes.isEmpty)
+            Text('No wallet passes saved yet. Add park passes or annual passes from More → Pass Wallet.',
+                style: WildPathTypography.body(
+                    fontSize: 12,
+                    color: WildPathColors.stone,
+                    height: 1.5))
+          else
+            ...passes.map((pass) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GestureDetector(
+                    onTap: () => _viewPass(pass),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: WildPathColors.cream,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: WildPathColors.mist),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color:
+                                  WildPathColors.forest.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              pass.mimeType == 'application/pdf'
+                                  ? Icons.picture_as_pdf_outlined
+                                  : Icons.photo_outlined,
+                              color: pass.mimeType == 'application/pdf'
+                                  ? WildPathColors.ember
+                                  : WildPathColors.forest,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(pass.label,
+                                    style: WildPathTypography.body(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: WildPathColors.pine)),
+                                const SizedBox(height: 2),
+                                Text(
+                                    pass.hasBack
+                                        ? 'Front + back saved'
+                                        : (pass.mimeType == 'application/pdf'
+                                            ? 'PDF pass document'
+                                            : 'Photo pass document'),
+                                    style: WildPathTypography.body(
+                                        fontSize: 11,
+                                        color: WildPathColors.smoke)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded,
+                              size: 18, color: WildPathColors.stone),
+                        ],
+                      ),
+                    ),
+                  ),
+                )),
+        ],
+      ),
+    );
+  }
+
   // ── Summary card ─────────────────────────────────────────────────────────
 
   Widget _buildSummaryCard() {
@@ -513,7 +699,7 @@ class _PermitsScreenState extends State<PermitsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('PERMITS SAVED',
+                              Text('PASSES & PERMITS',
                                   style: WildPathTypography.body(
                                       fontSize: 9.5,
                                       letterSpacing: 1.1,
@@ -527,10 +713,10 @@ class _PermitsScreenState extends State<PermitsScreen> {
                               const SizedBox(height: 6),
                               Text(
                                   total == 0
-                                      ? 'Add permit details or attach documents before you leave.'
+                                      ? 'Add pass details, permit info, or attach documents before you leave.'
                                       : pendingCount == 0
-                                          ? 'All saved permits look ready for this trip.'
-                                          : '$pendingCount permit ${pendingCount == 1 ? "still needs" : "still need"} details or review.',
+                                          ? 'All saved passes and permits look ready for this trip.'
+                                          : '$pendingCount item ${pendingCount == 1 ? "still needs" : "still need"} details or review.',
                                   style: WildPathTypography.body(
                                       fontSize: 12,
                                       color: WildPathColors.mist,
@@ -649,10 +835,13 @@ class _PermitsScreenState extends State<PermitsScreen> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const PageTitle('Permits',
-                          subtitle: 'Store permit numbers and documents'),
+                      const PageTitle('Passes & Permits',
+                          subtitle:
+                              'Store park passes, parking permits, and trip documents'),
                       const SizedBox(height: 16),
                       _buildSummaryCard(),
+                      const SizedBox(height: 12),
+                      _buildPassWalletSection(),
                       const SizedBox(height: 12),
                       const TipCard(
                         emoji: '💡',
@@ -664,8 +853,9 @@ class _PermitsScreenState extends State<PermitsScreen> {
             : KeyboardAwareListView(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                 children: [
-                  const PageTitle('Permits',
-                      subtitle: 'Store permit numbers and documents'),
+                  const PageTitle('Passes & Permits',
+                      subtitle:
+                          'Store park passes, parking permits, and trip documents'),
                   const SizedBox(height: 16),
                   _buildSummaryCard(),
                   const SizedBox(height: 4),
@@ -678,6 +868,8 @@ class _PermitsScreenState extends State<PermitsScreen> {
                             _removeAttachment(permit.id),
                         onViewDocument: () => _viewDocument(permit),
                       )),
+                  const SizedBox(height: 12),
+                  _buildPassWalletSection(),
                 ],
               ),
       ),
@@ -828,30 +1020,32 @@ class _PermitCard extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             color: WildPathColors.pine)),
                     const SizedBox(height: 3),
-                    Row(children: [
-                      _StatusChip(
-                        label: _statusLabel(status),
-                        color: statusColor,
-                        bg: statusBg,
-                        icon: status == _PermitStatus.active
-                            ? Icons.check_circle_outline_rounded
-                            : status == _PermitStatus.expired
-                                ? Icons.cancel_outlined
-                                : Icons.hourglass_top_rounded,
-                      ),
-                      if (hasDoc) ...[
-                        const SizedBox(width: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
                         _StatusChip(
-                          label: isImage ? 'Photo' : 'PDF',
-                          color: WildPathColors.blue,
-                          bg:
-                              WildPathColors.blue.withValues(alpha: 0.10),
-                          icon: isImage
-                              ? Icons.image_outlined
-                              : Icons.picture_as_pdf_outlined,
+                          label: _statusLabel(status),
+                          color: statusColor,
+                          bg: statusBg,
+                          icon: status == _PermitStatus.active
+                              ? Icons.check_circle_outline_rounded
+                              : status == _PermitStatus.expired
+                                  ? Icons.cancel_outlined
+                                  : Icons.hourglass_top_rounded,
                         ),
+                        if (hasDoc)
+                          _StatusChip(
+                            label: isImage ? 'Photo' : 'PDF',
+                            color: WildPathColors.blue,
+                            bg:
+                                WildPathColors.blue.withValues(alpha: 0.10),
+                            icon: isImage
+                                ? Icons.image_outlined
+                                : Icons.picture_as_pdf_outlined,
+                          ),
                       ],
-                    ]),
+                    ),
                   ]),
                 ),
 

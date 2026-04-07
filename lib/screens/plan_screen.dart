@@ -1399,25 +1399,40 @@ class _PlanScreenState extends State<PlanScreen> {
           onTap: _newTrip,
           borderRadius: BorderRadius.circular(999),
           child: Ink(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: WildPathColors.cream,
+              color: WildPathColors.amber,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: WildPathColors.mist,
+                color: WildPathColors.ember.withValues(alpha: 0.28),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: WildPathColors.amber.withValues(alpha: 0.28),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.add_rounded,
-                    size: 15, color: WildPathColors.forest),
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.add_rounded,
+                      size: 15, color: WildPathColors.white),
+                ),
                 const SizedBox(width: 6),
                 Text('Start New Trip',
                     style: WildPathTypography.body(
                         fontSize: 10,
                         letterSpacing: 0.75,
-                        color: WildPathColors.forest,
+                        color: WildPathColors.white,
                         fontWeight: FontWeight.w700)),
               ],
             ),

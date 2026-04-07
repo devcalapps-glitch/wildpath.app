@@ -29,7 +29,7 @@ enum MoreSection {
   map,
   emergency,
   budget,
-  passes,
+  passWallet,
   profile,
   about,
   privacy
@@ -97,10 +97,13 @@ class _MoreScreenState extends State<MoreScreen> {
           tripId: widget.currentTrip.id,
           onBack: _back,
           onSaveTrip: () => widget.onSwitchTab(-1), // -1 = trigger save sheet
-          onGoToPermits: () => _go(MoreSection.passes),
+          onGoToPermits: () => widget.onSwitchTab(2),
         );
-      case MoreSection.passes:
-        return _PassesSection(storage: widget.storage, onBack: _back);
+      case MoreSection.passWallet:
+        return _PassesSection(
+          storage: widget.storage,
+          onBack: _back,
+        );
       case MoreSection.profile:
         return _ProfileSection(storage: widget.storage, onBack: _back);
       case MoreSection.about:
@@ -126,8 +129,10 @@ class _MoreScreenState extends State<MoreScreen> {
           const SizedBox(height: 20),
           _item('👤', 'My Profile', 'Name, style & notifications',
               () => _go(MoreSection.profile)),
-          _item('🏞️', 'Passes & Permits', 'Photos of passes, permits & cards',
-              () => _go(MoreSection.passes)),
+          _item('🎟️', 'Pass Wallet', 'Photos of passes, cards & PDFs',
+              () => _go(MoreSection.passWallet)),
+          _item('📜', 'Permits', 'Manage permits for the current trip',
+              () => widget.onSwitchTab(2)),
           _item('🚨', 'Emergency Info', 'Contacts, GPS & rescue tips',
               () => _go(MoreSection.emergency)),
           _item('ℹ️', 'About WildPath', 'Version, credits & feedback',
@@ -620,12 +625,14 @@ class TripsSection extends StatefulWidget {
   final StorageService storage;
   final String currentTripId;
   final ValueChanged<TripModel> onLoadTrip;
+  final ValueChanged<TripModel> onOpenTripPermits;
   final VoidCallback? onBack;
   final bool isActive;
   const TripsSection(
       {required this.storage,
       required this.currentTripId,
       required this.onLoadTrip,
+      required this.onOpenTripPermits,
       this.onBack,
       this.isActive = false,
       super.key});
@@ -701,6 +708,32 @@ class _TripsSectionState extends State<TripsSection> {
       return '${m[d.month - 1]} ${d.day}';
     } catch (_) {
       return '—';
+    }
+  }
+
+  Future<void> _openTripInGoogleMaps(TripModel trip) async {
+    final Uri? url;
+    if (trip.lat != null && trip.lng != null) {
+      url = Uri.parse('https://maps.google.com/?q=${trip.lat},${trip.lng}');
+    } else {
+      final query = trip.locationSearchQuery.trim();
+      url = query.isEmpty
+          ? null
+          : Uri.https('www.google.com', '/maps/search/', {
+              'api': '1',
+              'query': query,
+            });
+    }
+
+    if (url == null) {
+      showWildToast(context, 'No saved location for this trip yet');
+      return;
+    }
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      showWildToast(context, 'Could not open Google Maps');
     }
   }
 
@@ -1013,13 +1046,23 @@ class _TripsSectionState extends State<TripsSection> {
           const SizedBox(height: 10),
         ],
 
-        // Permits card
+        PrimaryButton(
+          'Open in Google Maps',
+          fullWidth: true,
+          onPressed: (t.lat != null && t.lng != null) ||
+                  t.locationSearchQuery.isNotEmpty
+              ? () => _openTripInGoogleMaps(t)
+              : null,
+        ),
+        const SizedBox(height: 10),
+
+        // Trip permits preview
         _sectionCard(
-          label: 'PERMITS',
+          label: 'TRIP PERMITS',
           icon: Icons.article_outlined,
           children: permits.isEmpty
               ? [
-                  Text('No permits saved for this trip.',
+                  Text('No permits saved for this trip yet.',
                       style: WildPathTypography.body(
                           fontSize: 12, color: WildPathColors.stone))
                 ]
@@ -1084,6 +1127,12 @@ class _TripsSectionState extends State<TripsSection> {
                             ]),
                       ))
                   .toList(),
+        ),
+        const SizedBox(height: 8),
+        OutlineButton2(
+          'Open Trip Permits',
+          fullWidth: true,
+          onPressed: () => widget.onOpenTripPermits(t),
         ),
         const SizedBox(height: 10),
 
@@ -2409,7 +2458,7 @@ class _BudgetSectionState extends State<BudgetSection> {
             fullWidth: true, onPressed: _showAddSheet),
 
         const SizedBox(height: 10),
-        OutlineButton2('Next: Add Permit and Passes',
+        OutlineButton2('Next: Add Permit',
             fullWidth: true, onPressed: widget.onGoToPermits),
       ]),
     );
@@ -2545,12 +2594,15 @@ class _BudgetExpenseRow extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// PASSES & PERMITS
+// PASS WALLET
 // ══════════════════════════════════════════════════════════════════════════
 class _PassesSection extends StatefulWidget {
   final StorageService storage;
   final VoidCallback onBack;
-  const _PassesSection({required this.storage, required this.onBack});
+  const _PassesSection({
+    required this.storage,
+    required this.onBack,
+  });
 
   @override
   State<_PassesSection> createState() => _PassesSectionState();
@@ -2568,32 +2620,32 @@ class _PassesSectionState extends State<_PassesSection> {
   Future<void> _save() => widget.storage.savePasses(_passes);
 
   Future<void> _delete(PassItem pass) async {
-    try {
-      final f = File(pass.filePath);
-      if (f.existsSync()) f.deleteSync();
-    } catch (_) {}
+    for (final attachment in [pass.front, if (pass.back != null) pass.back!]) {
+      try {
+        final f = File(attachment.filePath);
+        if (f.existsSync()) f.deleteSync();
+      } catch (_) {}
+    }
     setState(() => _passes.removeWhere((x) => x.id == pass.id));
     await _save();
   }
 
   Future<void> _addPass() async {
-    final choice = await _showAttachSheet();
-    if (choice == null || !mounted) return;
-
-    final result = await _resolveFile(choice);
-    if (result == null || !mounted) return;
-    final (filePath, mimeType) = result;
-
+    final front = await _pickAndCopyAttachment(
+      title: 'Add Pass',
+      subtitle: 'Choose the front photo or PDF to save',
+    );
+    if (front == null || !mounted) return;
     final label = await _showLabelDialog();
     if (label == null || !mounted) return;
-
-    final destPath = await _copyToPassesDir(filePath);
+    final back = await _pickOptionalBackAttachment();
+    if (!mounted) return;
 
     final newPass = PassItem(
       id: const Uuid().v4(),
       label: label,
-      filePath: destPath,
-      mimeType: mimeType,
+      front: front,
+      back: back,
     );
     setState(() => _passes.add(newPass));
     await _save();
@@ -2607,6 +2659,31 @@ class _PassesSectionState extends State<_PassesSection> {
     final destPath = '${passesDir.path}/${const Uuid().v4()}$ext';
     File(filePath).copySync(destPath);
     return destPath;
+  }
+
+  Future<PassSideAttachment?> _pickAndCopyAttachment({
+    required String title,
+    required String subtitle,
+  }) async {
+    final choice = await _showAttachSheet(title: title, subtitle: subtitle);
+    if (choice == null || !mounted) return null;
+
+    final result = await _resolveFile(choice);
+    if (result == null || !mounted) return null;
+    final (filePath, mimeType) = result;
+    final destPath = await _copyToPassesDir(filePath);
+    return PassSideAttachment(filePath: destPath, mimeType: mimeType);
+  }
+
+  Future<PassSideAttachment?> _pickOptionalBackAttachment() async {
+    final choice = await _showOptionalBackSheet();
+    if (choice == null || choice == 'skip' || !mounted) return null;
+
+    final result = await _resolveFile(choice);
+    if (result == null || !mounted) return null;
+    final (filePath, mimeType) = result;
+    final destPath = await _copyToPassesDir(filePath);
+    return PassSideAttachment(filePath: destPath, mimeType: mimeType);
   }
 
   Future<(String, String)?> _resolveFile(String choice) async {
@@ -2633,7 +2710,10 @@ class _PassesSectionState extends State<_PassesSection> {
     return (filePath, mimeType);
   }
 
-  Future<String?> _showAttachSheet() => showModalBottomSheet<String>(
+  Future<String?> _showAttachSheet({
+    required String title,
+    required String subtitle,
+  }) => showModalBottomSheet<String>(
         context: context,
         backgroundColor: Colors.transparent,
         builder: (_) => SafeArea(
@@ -2646,11 +2726,11 @@ class _PassesSectionState extends State<_PassesSection> {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               _PassesDragHandle(),
               const SizedBox(height: 16),
-              Text('Add Pass',
+              Text(title,
                   style: WildPathTypography.display(
                       fontSize: 18, color: WildPathColors.pine)),
               const SizedBox(height: 4),
-              Text('Choose a photo or PDF to save',
+              Text(subtitle,
                   style: WildPathTypography.body(
                       fontSize: 12, color: WildPathColors.smoke)),
               const SizedBox(height: 12),
@@ -2659,6 +2739,40 @@ class _PassesSectionState extends State<_PassesSection> {
                   'gallery'),
               _attachOption(
                   Icons.picture_as_pdf_outlined, 'Choose PDF File', 'pdf'),
+            ]),
+          ),
+        ),
+      );
+
+  Future<String?> _showOptionalBackSheet() => showModalBottomSheet<String>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (_) => SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              _PassesDragHandle(),
+              const SizedBox(height: 16),
+              Text('Add Back of Pass?',
+                  style: WildPathTypography.display(
+                      fontSize: 18, color: WildPathColors.pine)),
+              const SizedBox(height: 4),
+              Text('Optional, but useful for front/back passes and cards',
+                  style: WildPathTypography.body(
+                      fontSize: 12, color: WildPathColors.smoke)),
+              const SizedBox(height: 12),
+              _attachOption(Icons.camera_alt_outlined, 'Take Photo', 'camera'),
+              _attachOption(Icons.photo_library_outlined, 'Choose from Gallery',
+                  'gallery'),
+              _attachOption(
+                  Icons.picture_as_pdf_outlined, 'Choose PDF File', 'pdf'),
+              const SizedBox(height: 8),
+              OutlineButton2('Skip for Now',
+                  fullWidth: true, onPressed: () => Navigator.pop(context, 'skip')),
             ]),
           ),
         ),
@@ -2756,7 +2870,11 @@ class _PassesSectionState extends State<_PassesSection> {
     );
   }
 
-  void _openImage(PassItem pass) {
+  void _openImageAttachment(
+    PassSideAttachment attachment,
+    String title, {
+    String? heroTag,
+  }) {
     showDialog(
       context: context,
       builder: (_) => GestureDetector(
@@ -2767,15 +2885,22 @@ class _PassesSectionState extends State<_PassesSection> {
             child: Stack(
               children: [
                 Center(
-                  child: Hero(
-                    tag: 'pass_img_${pass.id}',
-                    child: InteractiveViewer(
-                      child: Image.file(
-                        File(pass.filePath),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
+                  child: heroTag != null
+                      ? Hero(
+                          tag: heroTag,
+                          child: InteractiveViewer(
+                            child: Image.file(
+                              File(attachment.filePath),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        )
+                      : InteractiveViewer(
+                          child: Image.file(
+                            File(attachment.filePath),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                 ),
                 Positioned(
                   top: 8,
@@ -2792,7 +2917,7 @@ class _PassesSectionState extends State<_PassesSection> {
                   right: 0,
                   child: Center(
                     child: Text(
-                      pass.label,
+                      title,
                       style: WildPathTypography.body(
                           fontSize: 14,
                           color: Colors.white,
@@ -2808,15 +2933,112 @@ class _PassesSectionState extends State<_PassesSection> {
     );
   }
 
-  void _openPdf(PassItem pass) {
+  void _openPdfAttachment(PassSideAttachment attachment, String title) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) =>
-            _PdfViewerPage(filePath: pass.filePath, title: pass.label),
+            _PdfViewerPage(filePath: attachment.filePath, title: title),
       ),
     );
   }
+
+  void _openAttachment(
+    PassSideAttachment attachment,
+    String title, {
+    String? heroTag,
+  }) {
+    if (attachment.mimeType == 'application/pdf') {
+      _openPdfAttachment(attachment, title);
+    } else {
+      _openImageAttachment(attachment, title, heroTag: heroTag);
+    }
+  }
+
+  void _openPass(PassItem pass) {
+    if (!pass.hasBack) {
+      _openAttachment(pass.front, '${pass.label} · Front',
+          heroTag: 'pass_img_${pass.id}');
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Container(
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            _PassesDragHandle(),
+            const SizedBox(height: 16),
+            Text(pass.label,
+                style: WildPathTypography.display(
+                    fontSize: 18, color: WildPathColors.pine)),
+            const SizedBox(height: 4),
+            Text('Choose which side to open',
+                style: WildPathTypography.body(
+                    fontSize: 12, color: WildPathColors.smoke)),
+            const SizedBox(height: 12),
+            _attachmentOption(
+              label: 'View Front',
+              attachment: pass.front,
+              onTap: () {
+                Navigator.pop(context);
+                _openAttachment(pass.front, '${pass.label} · Front',
+                    heroTag: 'pass_img_${pass.id}');
+              },
+            ),
+            _attachmentOption(
+              label: 'View Back',
+              attachment: pass.back!,
+              onTap: () {
+                Navigator.pop(context);
+                _openAttachment(pass.back!, '${pass.label} · Back');
+              },
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _attachmentOption({
+    required String label,
+    required PassSideAttachment attachment,
+    required VoidCallback onTap,
+  }) =>
+      ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+              color: WildPathColors.forest.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10)),
+          child: Icon(
+            attachment.mimeType == 'application/pdf'
+                ? Icons.picture_as_pdf_outlined
+                : Icons.photo_outlined,
+            color: attachment.mimeType == 'application/pdf'
+                ? WildPathColors.ember
+                : WildPathColors.forest,
+            size: 20,
+          ),
+        ),
+        title: Text(label,
+            style: WildPathTypography.body(
+                fontSize: 14, color: WildPathColors.pine)),
+        subtitle: Text(
+            attachment.mimeType == 'application/pdf'
+                ? 'PDF document'
+                : 'Photo document',
+            style: WildPathTypography.body(
+                fontSize: 11, color: WildPathColors.smoke)),
+        onTap: onTap,
+      );
 
   void _confirmDelete(PassItem pass) {
     showModalBottomSheet(
@@ -2890,9 +3112,9 @@ class _PassesSectionState extends State<_PassesSection> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _BackHeader(title: 'Passes & Permits', onBack: widget.onBack),
+                  _BackHeader(title: 'Pass Wallet', onBack: widget.onBack),
                   const SizedBox(height: 4),
-                  Text('Photos of your park passes, permits & cards',
+                  Text('Store photos and PDFs of your passes and access cards',
                       style: WildPathTypography.body(
                           fontSize: 12, color: WildPathColors.smoke)),
                   const SizedBox(height: 20),
@@ -2900,31 +3122,41 @@ class _PassesSectionState extends State<_PassesSection> {
               ),
             ),
             Expanded(
-              child: _passes.isEmpty
-                  ? _buildEmptyState()
-                  : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.82,
+              child: KeyboardAwareScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('SAVED PASSES',
+                        style: WildPathTypography.body(
+                            fontSize: 10,
+                            letterSpacing: 1.1,
+                            color: WildPathColors.smoke,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 10),
+                    if (_passes.isEmpty)
+                      _buildEmptyState()
+                    else
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.82,
+                        ),
+                        itemCount: _passes.length,
+                        itemBuilder: (_, i) => _PassCard(
+                          pass: _passes[i],
+                          onTap: () => _openPass(_passes[i]),
+                          onDelete: () => _confirmDelete(_passes[i]),
+                        ),
                       ),
-                      itemCount: _passes.length,
-                      itemBuilder: (_, i) => _PassCard(
-                        pass: _passes[i],
-                        onTap: () {
-                          final pass = _passes[i];
-                          if (pass.mimeType == 'application/pdf') {
-                            _openPdf(pass);
-                          } else {
-                            _openImage(pass);
-                          }
-                        },
-                        onDelete: () => _confirmDelete(_passes[i]),
-                      ),
-                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -2964,7 +3196,7 @@ class _PassesSectionState extends State<_PassesSection> {
                       fontSize: 20, color: WildPathColors.forest)),
               const SizedBox(height: 8),
               Text(
-                  'Store photos of your park passes, annual permits, and reservation confirmations — all in one place.',
+                  'Store the front and back of your park passes, access cards, and reservation documents in one place.',
                   style: WildPathTypography.body(
                       fontSize: 13, color: WildPathColors.smoke, height: 1.5),
                   textAlign: TextAlign.center),
@@ -3022,20 +3254,49 @@ class _PassCard extends StatelessWidget {
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Text(
-                    pass.label,
-                    style: WildPathTypography.body(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: WildPathColors.pine),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pass.label,
+                        style: WildPathTypography.body(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: WildPathColors.pine),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        pass.hasBack ? 'Front + back saved' : 'Front side only',
+                        style: WildPathTypography.body(
+                            fontSize: 10, color: WildPathColors.smoke),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
         ),
+        if (pass.hasBack)
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(999)),
+              child: Text('2 sides',
+                  style: WildPathTypography.body(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ),
+          ),
         Positioned(
           top: 6,
           right: 6,

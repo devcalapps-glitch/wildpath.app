@@ -13,8 +13,7 @@ import 'screens/plan_screen.dart';
 import 'screens/gear_screen.dart';
 import 'screens/meals_screen.dart';
 import 'screens/conditions_screen.dart';
-import 'screens/more_screen.dart'
-    show MoreScreen, MapSection, BudgetSection, TripsSection;
+import 'screens/more_screen.dart' show MoreScreen, BudgetSection, TripsSection;
 import 'screens/permits_screen.dart';
 
 void main() async {
@@ -73,7 +72,7 @@ class _AppShellState extends State<AppShell> {
   bool _loading = true;
   bool _showSplash = true;
   bool _showOnboarding = false;
-  // Bottom nav: 0=Plan, 1=Weather, 2=Map, 3=More
+  // Bottom nav: 0=Plan, 1=Weather, 2=Permits, 3=My Trips, 4=More
   int _tab = 0;
   // Plan hub sub-tabs: 0=Trip, 1=Gear, 2=Meals, 3=Budget
   int _planTab = 0;
@@ -125,7 +124,7 @@ class _AppShellState extends State<AppShell> {
   static const _navItems = [
     _NavItem(Icons.terrain_rounded, 'Plan'),
     _NavItem(Icons.wb_cloudy_outlined, 'Weather'),
-    _NavItem(Icons.map_outlined, 'Map'),
+    _NavItem(Icons.article_outlined, 'Permits'),
     _NavItem(Icons.backpack_outlined, 'My Trips'),
     _NavItem(Icons.grid_view_rounded, 'More'),
   ];
@@ -190,7 +189,11 @@ class _AppShellState extends State<AppShell> {
                 onRegisterScrollToTop: (fn) => _planScrollToTop = fn,
               ),
               ConditionsScreen(trip: _trip),
-              MapSection(trip: _trip),
+              PermitsScreen(
+                storage: widget.storage,
+                trip: _trip,
+                onSaveTrip: () => _setTab(-1),
+              ),
               TripsSection(
                 storage: widget.storage,
                 currentTripId: _trip.id,
@@ -200,6 +203,13 @@ class _AppShellState extends State<AppShell> {
                     _trip = t;
                     _tab = 0;
                     _planTab = 0;
+                  });
+                  widget.storage.saveCurrentTrip(t);
+                },
+                onOpenTripPermits: (t) {
+                  setState(() {
+                    _trip = t;
+                    _tab = 2;
                   });
                   widget.storage.saveCurrentTrip(t);
                 },
